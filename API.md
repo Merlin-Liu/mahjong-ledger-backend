@@ -63,7 +63,39 @@
 
 **GET** `/api/wx_openid`
 
-**说明:** 仅在小程序环境中可用，从请求头中获取微信 OpenID
+**说明:** 仅在小程序云开发环境中可用，从请求头中获取微信 OpenID
+
+**响应:**
+```
+openid字符串
+```
+
+### 4. 通过 Code 换取微信 OpenID（推荐）
+
+**POST** `/api/wx_openid_by_code`
+
+**请求体:**
+```json
+{
+  "code": "微信登录凭证code"
+}
+```
+
+**说明:** 通过 `wx.login()` 获取的 code 换取 openid，适用于所有环境
+
+**响应:**
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "openid": "用户的唯一标识",
+    "session_key": "会话密钥"
+  }
+}
+```
+
+**注意:** 需要在后端环境变量中配置 `WX_APPID` 和 `WX_SECRET`
 
 ---
 

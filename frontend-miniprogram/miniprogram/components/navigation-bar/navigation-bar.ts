@@ -94,12 +94,25 @@ Component({
     },
     back() {
       const data = this.data
-      if (data.delta) {
+      // 获取当前页面栈
+      const pages = getCurrentPages()
+      // 如果页面栈只有1个页面（即当前页面），说明是从外部进入的，应该返回主页
+      if (pages.length === 1) {
+        wx.reLaunch({
+          url: '/pages/index/index'
+        })
+      } else if (data.delta) {
         wx.navigateBack({
           delta: data.delta
         })
       }
       this.triggerEvent('back', { delta: data.delta }, {})
+    },
+    home() {
+      wx.reLaunch({
+        url: '/pages/index/index'
+      })
+      this.triggerEvent('home', {}, {})
     }
   },
 })

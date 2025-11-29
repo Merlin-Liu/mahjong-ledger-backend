@@ -1,0 +1,185 @@
+/**room.less**/
+page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+.scrollarea {
+  flex: 1;
+  overflow-y: hidden;
+}
+
+.container {
+  padding: 40rpx;
+  padding-bottom: 200rpx;
+}
+
+.room-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 30rpx;
+  color: #fff;
+}
+
+.room-title {
+  font-size: 48rpx;
+  font-weight: 600;
+  margin-bottom: 20rpx;
+}
+
+.room-code {
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+.section {
+  background-color: #fff;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 30rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #f9f9f9;
+  border-radius: 15rpx;
+}
+
+.member-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  background-color: #e0e0e0;
+}
+
+.member-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.member-name {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.member-balance {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.member-balance.positive {
+  color: #07c160;
+}
+
+.member-balance.negative {
+  color: #fa5151;
+}
+
+.activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+.activity-item {
+  padding: 20rpx;
+  background-color: #f9f9f9;
+  border-radius: 15rpx;
+  border-left: 4rpx solid #667eea;
+}
+
+.activity-time {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.activity-message {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.6;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 20rpx;
+  padding: 30rpx 40rpx;
+  background-color: #fff;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.btn-action {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx;
+  border-radius: 15rpx;
+  border: none;
+  background-color: #f0f0f0;
+}
+
+.btn-share {
+  background-color: #07c160;
+  color: #fff;
+}
+
+.btn-leave {
+  background-color: #ff9500;
+  color: #fff;
+}
+
+.btn-close {
+  background-color: #fa5151;
+  color: #fff;
+}
+
+.btn-icon {
+  font-size: 40rpx;
+  margin-bottom: 10rpx;
+}
+
+.btn-text {
+  font-size: 24rpx;
+}
+

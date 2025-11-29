@@ -1,18 +1,32 @@
 // app.ts
-App<IAppOption>({
-  globalData: {},
-  onLaunch() {
-    // 展示本地存储能力
-    const logs = wx.getStorageSync('logs') || []
-    logs.unshift(Date.now())
-    wx.setStorageSync('logs', logs)
+import { getUserUniqueId } from './utils/util'
 
-    // 登录
-    wx.login({
-      success: res => {
-        console.log(res.code)
-        // 发送 res.code 到后台换取 openId, sessionKey, unionId
-      },
-    })
+interface IAppOption {
+  globalData: {
+    userInfo: {
+      id: number
+      username: string
+      avatarUrl: string
+      nickName: string
+    } | null
+    uniqueUserId: string | null  // 用户唯一ID（本地生成，无需后端）
+  }
+}
+
+App<IAppOption>({
+  globalData: {
+    userInfo: null,
+    uniqueUserId: null,
+  },
+  onLaunch() {
+    // 直接获取用户唯一ID（本地生成，无需后端接口）
+    const uniqueId = getUserUniqueId()
+    this.globalData.uniqueUserId = uniqueId
+    
+    // 尝试从本地存储获取用户信息
+    const storedUserInfo = wx.getStorageSync('userInfo')
+    if (storedUserInfo) {
+      this.globalData.userInfo = storedUserInfo
+    }
   },
 })

@@ -1,4 +1,5 @@
 const express = require("express");
+const https = require("https");
 const { User } = require("../db");
 const { successResponse, errorResponse, asyncHandler } = require("../utils");
 
@@ -66,14 +67,74 @@ router.get("/:id", asyncHandler(async (req, res) => {
 /**
  * 小程序调用，获取微信 Open ID
  * GET /api/wx_openid
+ * 优先从请求头获取（云开发环境），如果没有则返回错误提示使用 code 方式
  */
 router.get("/wx_openid", (req, res) => {
-  if (req.headers["x-wx-source"]) {
+  if (req.headers["x-wx-source"] && req.headers["x-wx-openid"]) {
     res.send(req.headers["x-wx-openid"]);
   } else {
-    res.status(400).json(errorResponse("非微信环境", 400));
+    res.status(400).json(errorResponse("请使用 POST /api/wx_openid_by_code 接口，通过 code 换取 openid", 400));
   }
 });
+
+/**
+ * 通过 code 换取微信 OpenID
+ * POST /api/wx_openid_by_code
+ * Body: { code: string }
+ */
+router.post("/wx_openid_by_code", asyncHandler(async (req, res) => {
+  const { code } = req.body;
+  
+  if (!code) {
+    return res.status(400).json(errorResponse("code 不能为空", 400));
+  }
+
+  // 从环境变量获取小程序 appid 和 secret
+  const appid = process.env.WX_APPID;
+  const secret = process.env.WX_SECRET;
+
+  if (!appid || !secret) {
+    return res.status(500).json(errorResponse("服务器未配置小程序 appid 或 secret", 500));
+  }
+
+  try {
+    // 调用微信接口换取 openid
+    const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`;
+    
+    const response = await new Promise((resolve, reject) => {
+      https.get(url, (res) => {
+        let data = '';
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      }).on('error', (err) => {
+        reject(err);
+      });
+    });
+
+    const { openid, session_key, errcode, errmsg } = response;
+
+    if (errcode) {
+      return res.status(400).json(errorResponse(`微信接口错误: ${errmsg} (${errcode})`, 400));
+    }
+
+    if (!openid) {
+      return res.status(400).json(errorResponse("未能获取到 openid", 400));
+    }
+
+    res.json(successResponse({ openid, session_key }));
+  } catch (error) {
+    console.error('换取 openid 失败:', error);
+    res.status(500).json(errorResponse("换取 openid 失败: " + error.message, 500));
+  }
+}));
 
 /**
  * 获取用户的房间历史

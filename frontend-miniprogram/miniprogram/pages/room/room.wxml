@@ -1,0 +1,57 @@
+<!--room.wxml-->
+<navigation-bar title="房间" back="{{true}}" color="black" background="#FFF"></navigation-bar>
+
+<scroll-view class="scrollarea" scroll-y type="list">
+  <view class="container">
+    <!-- 房间信息 -->
+    <view class="room-header" wx:if="{{roomInfo}}">
+      <view class="room-title">{{roomInfo.name || '房间'}}</view>
+      <view class="room-code">房间码：{{roomCode}}</view>
+    </view>
+
+    <!-- 成员列表 -->
+    <view class="section">
+      <view class="section-title">房间成员</view>
+      <view class="members-list">
+        <view class="member-item" wx:for="{{members}}" wx:key="id">
+          <image class="member-avatar" src="https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0" mode="aspectFill"></image>
+          <view class="member-info">
+            <view class="member-name">{{item.username}}</view>
+            <view class="member-balance {{item.balance >= 0 ? 'positive' : 'negative'}}">
+              {{item.balance >= 0 ? '+' : ''}}{{item.balance.toFixed(2)}} 元
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 房间日志 -->
+    <view class="section">
+      <view class="section-title">房间日志</view>
+      <view class="activities-list">
+        <view class="activity-item" wx:for="{{activities}}" wx:key="timestamp">
+          <view class="activity-time">{{formatTime(item.timestamp)}}</view>
+          <view class="activity-message">{{item.message}}</view>
+        </view>
+        <view class="empty-tip" wx:if="{{activities.length === 0}}">暂无日志</view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="actions">
+      <button class="btn-action btn-share" open-type="share">
+        <text class="btn-icon">📤</text>
+        <text class="btn-text">邀请好友</text>
+      </button>
+      <button class="btn-action btn-leave" bindtap="leaveRoom">
+        <text class="btn-icon">🚪</text>
+        <text class="btn-text">离开房间</text>
+      </button>
+      <button class="btn-action btn-close" bindtap="closeRoom" wx:if="{{isOwner}}">
+        <text class="btn-icon">🔒</text>
+        <text class="btn-text">结束房间</text>
+      </button>
+    </view>
+  </view>
+</scroll-view>
+
