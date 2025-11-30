@@ -12,7 +12,7 @@ const router = express.Router();
  */
 router.post("/", asyncHandler(async (req, res) => {
   const { wxOpenId, username } = req.body;
-  
+
   if (!username || username.trim() === "") {
     return res.status(400).json(errorResponse("用户名不能为空", 400));
   }
@@ -51,7 +51,7 @@ router.post("/", asyncHandler(async (req, res) => {
 router.get("/:id", asyncHandler(async (req, res) => {
   const { id } = req.params;
   const user = await User.findByPk(id);
-  
+
   if (!user) {
     return res.status(404).json(errorResponse("用户不存在", 404));
   }
@@ -84,7 +84,7 @@ router.get("/wx_openid", (req, res) => {
  */
 router.post("/wx_openid_by_code", asyncHandler(async (req, res) => {
   const { code } = req.body;
-  
+
   if (!code) {
     return res.status(400).json(errorResponse("code 不能为空", 400));
   }
@@ -100,7 +100,7 @@ router.post("/wx_openid_by_code", asyncHandler(async (req, res) => {
   try {
     // 调用微信接口换取 openid
     const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`;
-    
+
     const response = await new Promise((resolve, reject) => {
       https.get(url, (res) => {
         let data = '';
@@ -142,7 +142,7 @@ router.post("/wx_openid_by_code", asyncHandler(async (req, res) => {
  */
 router.get("/:id/rooms", asyncHandler(async (req, res) => {
   const { id } = req.params;
-  
+
   const user = await User.findByPk(id);
   if (!user) {
     return res.status(404).json(errorResponse("用户不存在", 404));
@@ -173,7 +173,7 @@ router.get("/:id/rooms", asyncHandler(async (req, res) => {
   const roomsData = await Promise.all(
     memberships.map(async (membership) => {
       const room = membership.room;
-      
+
       // 获取房间所有成员
       const members = await RoomMember.findAll({
         where: { roomId: room.id },

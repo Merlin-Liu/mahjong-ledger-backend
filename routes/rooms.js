@@ -424,5 +424,117 @@ router.get("/:code/activities", asyncHandler(async (req, res) => {
   res.json(successResponse(activities));
 }));
 
+/**
+ * 获取房间完整状态（成员、转账记录、活动记录）
+ * GET /api/rooms/:code/status
+ */
+router.get("/:code/status", asyncHandler(async (req, res) => {
+  const { code } = req.params;
+  
+  const room = await Room.findOne({ where: { code } });
+  if (!room) {
+    return res.status(404).json(errorResponse("房间不存在", 404));
+  }
+
+  // 获取成员列表
+  const members = await RoomMember.findAll({
+    where: { roomId: room.id },
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["id", "username"],
+      },
+    ],
+    order: [["joinedAt", "ASC"]],
+  });
+
+  // 获取转账记录
+  const transactions = await Transaction.findAll({
+    where: { roomId: room.id },
+    include: [
+      {
+        model: User,
+        as: "fromUser",
+        attributes: ["id", "username"],
+      },
+      {
+        model: User,
+        as: "toUser",
+        attributes: ["id", "username"],
+      },
+    ],
+    order: [["createdAt", "DESC"]],
+  });
+
+  // 获取活动记录
+  const activities = [];
+
+  members.forEach(member => {
+    activities.push({
+      type: "join",
+      userId: member.userId,
+      username: member.username,
+      timestamp: member.joinedAt,
+      message: `${member.username} 进入了房间`,
+    });
+
+    if (member.leftAt) {
+      activities.push({
+        type: "leave",
+        userId: member.userId,
+        username: member.username,
+        timestamp: member.leftAt,
+        message: `${member.username} 离开了房间`,
+      });
+    }
+  });
+
+  transactions.forEach(transaction => {
+    activities.push({
+      type: "transaction",
+      fromUserId: transaction.fromUserId,
+      fromUsername: transaction.fromUser.username,
+      toUserId: transaction.toUserId,
+      toUsername: transaction.toUser.username,
+      amount: parseFloat(transaction.amount),
+      timestamp: transaction.createdAt,
+      message: `${transaction.fromUser.username} 向 ${transaction.toUser.username} 转账 ${transaction.amount} 元`,
+    });
+  });
+
+  // 按时间排序
+  activities.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+  res.json(successResponse({
+    members: members.map(m => ({
+      id: m.id,
+      userId: m.userId,
+      username: m.username,
+      user: {
+        id: m.user.id,
+        username: m.user.username,
+      },
+      joinedAt: m.joinedAt,
+      leftAt: m.leftAt,
+    })),
+    transactions: transactions.map(t => ({
+      id: t.id,
+      fromUser: {
+        id: t.fromUser.id,
+        username: t.fromUser.username,
+      },
+      toUser: {
+        id: t.toUser.id,
+        username: t.toUser.username,
+      },
+      amount: parseFloat(t.amount),
+      description: t.description,
+      createdAt: t.createdAt,
+    })),
+    activities,
+  }));
+}));
+
 module.exports = router;
 

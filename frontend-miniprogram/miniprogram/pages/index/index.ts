@@ -26,6 +26,7 @@ Page({
     hasUserInfo: false,
     userId: 0,
     loading: false,
+    roomCodeInput: '',  // 房间ID输入框
   },
 
   onLoad() {
@@ -155,12 +156,140 @@ Page({
       }, 1000)
     } catch (err: any) {
       console.error('创建房间失败:', err)
+      const errorMessage = err.message || '创建房间失败'
+      
+      // 如果是数据库相关错误，提供重试选项
+      if (errorMessage.includes('数据库正在恢复中') || 
+          errorMessage.includes('数据库连接异常') ||
+          errorMessage.includes('resuming')) {
+        const isConnecting = errorMessage.includes('连接异常')
+        wx.showModal({
+          title: '提示',
+          content: isConnecting 
+            ? '数据库连接异常，请稍后重试。是否立即重试？'
+            : '数据库正在恢复中，请稍后重试。是否立即重试？',
+          confirmText: '重试',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              // 延迟2秒后重试
+              setTimeout(() => {
+                this.createRoom()
+              }, 2000)
+            } else {
+              this.setData({ loading: false })
+            }
+          },
+        })
+      } else {
+        wx.showToast({
+          title: errorMessage,
+          icon: 'none',
+          duration: 3000,
+        })
+        this.setData({ loading: false })
+      }
+    }
+  },
+
+  // 输入房间ID
+  onRoomCodeInput(e: any) {
+    const value = e.detail.value
+    this.setData({
+      roomCodeInput: value  // 不立即trim，保留用户输入，在提交时再trim
+    })
+  },
+
+  // 通过房间ID加入房间
+  async joinRoomByCode() {
+    const roomCode = this.data.roomCodeInput.trim()
+    
+    if (!roomCode) {
       wx.showToast({
-        title: err.message || '创建房间失败',
+        title: '请输入房间ID',
         icon: 'none',
       })
-    } finally {
-      this.setData({ loading: false })
+      return
+    }
+
+    if (!this.data.userId) {
+      wx.showToast({
+        title: '请先完善用户信息',
+        icon: 'none',
+      })
+      return
+    }
+
+    if (this.data.loading) return
+
+    this.setData({ loading: true })
+
+    try {
+      // 先获取房间信息
+      await roomApi.getRoomInfo(roomCode)
+      
+      // 加入房间
+      await roomApi.joinRoom(roomCode, this.data.userId)
+      
+      wx.showToast({
+        title: '加入房间成功',
+        icon: 'success',
+      })
+      
+      // 清空输入框
+      this.setData({ roomCodeInput: '' })
+      
+      // 跳转到房间页面
+      setTimeout(() => {
+        wx.redirectTo({
+          url: `/pages/room/room?code=${roomCode}`,
+        })
+      }, 1000)
+    } catch (err: any) {
+      console.error('加入房间失败:', err)
+      const errorMessage = err.message || '加入房间失败'
+      
+      // 如果已经在房间中，直接跳转到房间页面
+      if (errorMessage.includes('已经在房间中') || errorMessage.includes('已在房间中')) {
+        // 清空输入框
+        this.setData({ roomCodeInput: '', loading: false })
+        // 直接跳转到房间页面
+        wx.redirectTo({
+          url: `/pages/room/room?code=${roomCode}`,
+        })
+        return
+      }
+      
+      // 如果是数据库相关错误，提供重试选项
+      if (errorMessage.includes('数据库正在恢复中') || 
+          errorMessage.includes('数据库连接异常') ||
+          errorMessage.includes('resuming')) {
+        const isConnecting = errorMessage.includes('连接异常')
+        wx.showModal({
+          title: '提示',
+          content: isConnecting 
+            ? '数据库连接异常，请稍后重试。是否立即重试？'
+            : '数据库正在恢复中，请稍后重试。是否立即重试？',
+          confirmText: '重试',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              setTimeout(() => {
+                this.joinRoomByCode()
+              }, 2000)
+            } else {
+              this.setData({ loading: false })
+            }
+          },
+        })
+      } else {
+        wx.showToast({
+          title: errorMessage,
+          icon: 'none',
+          duration: 3000,
+        })
+        this.setData({ loading: false })
+      }
     }
   },
 
@@ -205,10 +334,39 @@ Page({
           }, 1000)
         } catch (err: any) {
           console.error('加入房间失败:', err)
-          wx.showToast({
-            title: err.message || '加入房间失败',
-            icon: 'none',
-          })
+          const errorMessage = err.message || '加入房间失败'
+          
+          // 如果已经在房间中，直接跳转到房间页面
+          if (errorMessage.includes('已经在房间中') || errorMessage.includes('已在房间中')) {
+            wx.redirectTo({
+              url: `/pages/room/room?code=${roomCode}`,
+            })
+          } else if (errorMessage.includes('数据库正在恢复中') || 
+                     errorMessage.includes('数据库连接异常') ||
+                     errorMessage.includes('resuming')) {
+            // 数据库相关错误，提供重试选项
+            const isConnecting = errorMessage.includes('连接异常')
+            wx.showModal({
+              title: '提示',
+              content: isConnecting 
+                ? '数据库连接异常，请稍后重试。是否立即重试？'
+                : '数据库正在恢复中，请稍后重试。是否立即重试？',
+              confirmText: '重试',
+              cancelText: '取消',
+              success: (res) => {
+                if (res.confirm) {
+                  setTimeout(() => {
+                    this.scanCode()
+                  }, 2000)
+                }
+              },
+            })
+          } else {
+            wx.showToast({
+              title: errorMessage,
+              icon: 'none',
+            })
+          }
         }
       },
       fail: (err) => {

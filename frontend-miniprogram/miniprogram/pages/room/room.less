@@ -6,90 +6,102 @@ page {
   background-color: #f5f5f5;
 }
 
-.scrollarea {
-  flex: 1;
-  overflow-y: hidden;
-}
-
-.container {
-  padding: 40rpx;
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
   padding-bottom: 200rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+  margin-top: calc(44px + env(safe-area-inset-top));
 }
 
-.room-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20rpx;
-  padding: 40rpx;
-  margin-bottom: 30rpx;
-  color: #fff;
-}
-
-.room-title {
-  font-size: 48rpx;
-  font-weight: 600;
-  margin-bottom: 20rpx;
-}
-
-.room-code {
-  font-size: 28rpx;
-  opacity: 0.9;
-}
-
-.section {
+/* 成员列表区域 - 固定在顶部 */
+.members-section {
   background-color: #fff;
-  border-radius: 20rpx;
-  padding: 40rpx;
-  margin-bottom: 30rpx;
+  padding: 30rpx 40rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
 }
 
 .section-title {
   font-size: 36rpx;
   font-weight: 600;
   color: #333;
-  margin-bottom: 30rpx;
-  padding-bottom: 20rpx;
-  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.room-code-display {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 10rpx 20rpx;
+  background-color: #f0f0f0;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.room-code-label {
+  font-size: 24rpx;
+}
+
+.copy-icon {
+  font-size: 28rpx;
+}
+
+.members-scroll {
+  width: 100%;
+  white-space: nowrap;
 }
 
 .members-list {
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
   gap: 20rpx;
+  padding-bottom: 10rpx;
 }
 
 .member-item {
-  display: flex;
+  display: inline-flex;
+  flex-direction: column;
   align-items: center;
   padding: 20rpx;
   background-color: #f9f9f9;
   border-radius: 15rpx;
+  min-width: 160rpx;
+  flex-shrink: 0;
 }
 
 .member-avatar {
-  width: 80rpx;
-  height: 80rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 50%;
-  margin-right: 20rpx;
+  margin-bottom: 15rpx;
   background-color: #e0e0e0;
 }
 
-.member-info {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .member-name {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 500;
   color: #333;
+  margin-bottom: 10rpx;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
 }
 
 .member-balance {
-  font-size: 32rpx;
+  font-size: 26rpx;
   font-weight: 600;
+  text-align: center;
 }
 
 .member-balance.positive {
@@ -100,12 +112,29 @@ page {
   color: #fa5151;
 }
 
+/* 房间日志区域 - 占满剩余空间 */
+.activities-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  margin-top: 20rpx;
+  border-radius: 20rpx 20rpx 0 0;
+  padding: 30rpx 40rpx 0;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.activities-scroll {
+  flex: 1;
+  height: 100%;
+}
+
 .activities-list {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
-  max-height: 600rpx;
-  overflow-y: auto;
+  padding-bottom: 20rpx;
 }
 
 .activity-item {
@@ -119,6 +148,8 @@ page {
   font-size: 24rpx;
   color: #999;
   margin-bottom: 10rpx;
+  display: block;
+  visibility: visible;
 }
 
 .activity-message {
@@ -145,6 +176,7 @@ page {
   background-color: #fff;
   box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
   border-top: 1rpx solid #f0f0f0;
+  z-index: 100;
 }
 
 .btn-action {

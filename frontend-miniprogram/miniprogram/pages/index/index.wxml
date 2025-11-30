@@ -3,7 +3,7 @@
 <scroll-view class="scrollarea" scroll-y type="list">
   <view class="container">
     <!-- 用户信息区域 -->
-    <view class="userinfo">
+    <view class="userinfo-card">
       <block wx:if="{{!hasUserInfo}}">
         <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
           <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
@@ -15,21 +15,50 @@
         <view class="tip-text">请选择头像并输入昵称</view>
       </block>
       <block wx:else>
-        <image class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
+        <image class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
         <text class="userinfo-nickname">{{userInfo.nickName}}</text>
       </block>
     </view>
 
     <!-- 功能按钮区域 -->
     <view class="actions" wx:if="{{hasUserInfo}}">
-      <button class="btn-action btn-create" bindtap="createRoom" disabled="{{loading}}">
-        <text class="btn-icon">🏠</text>
-        <text class="btn-text">开房间</text>
-      </button>
-      <button class="btn-action btn-scan" bindtap="scanCode">
-        <text class="btn-icon">📷</text>
-        <text class="btn-text">扫码进入房间</text>
-      </button>
+      <!-- 开房间和扫码按钮并排 -->
+      <view class="btn-row">
+        <button class="btn-action btn-primary" bindtap="createRoom" disabled="{{loading}}">
+          <view class="btn-content">
+            <text class="btn-icon">🏠</text>
+            <text class="btn-text">开房间</text>
+            <text class="btn-desc">创建新房间</text>
+          </view>
+        </button>
+        
+        <button class="btn-action btn-secondary" bindtap="scanCode">
+          <view class="btn-content">
+            <text class="btn-icon">📷</text>
+            <text class="btn-text">扫码进入</text>
+          </view>
+        </button>
+      </view>
+      
+      <!-- 输入房间ID加入房间 -->
+      <view class="action-card">
+        <view class="card-header">
+          <text class="card-title">加入房间</text>
+        </view>
+        <view class="input-wrapper">
+          <input 
+            class="room-code-input" 
+            type="number"
+            placeholder="请输入房间ID" 
+            value="{{roomCodeInput}}"
+            bindinput="onRoomCodeInput"
+            maxlength="20"
+          />
+          <button class="btn-join" bindtap="joinRoomByCode" disabled="{{loading || !roomCodeInput}}">
+            加入
+          </button>
+        </view>
+      </view>
     </view>
   </view>
 </scroll-view>

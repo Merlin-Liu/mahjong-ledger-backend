@@ -26,6 +26,7 @@ interface Member {
   joinedAt: string
   leftAt: string | null
   balance?: number
+  formattedBalance?: string  // 格式化后的余额显示
 }
 
 interface Activity {
@@ -39,6 +40,7 @@ interface Activity {
   amount?: number
   timestamp: string
   message: string
+  formattedTime?: string  // 格式化后的时间
 }
 
 Page({
@@ -129,8 +131,8 @@ Page({
       }
     }
     
-    await this.loadMembers()
-    await this.loadActivities()
+    // 初始加载房间状态（成员、转账、活动）
+    await this.loadRoomStatus()
     
     // 开始定时轮询
     this.startPolling()
@@ -154,7 +156,51 @@ Page({
     }
   },
 
-  // 加载成员列表
+  // 加载房间状态（成员、转账、活动）
+  async loadRoomStatus() {
+    try {
+      const status = await roomApi.getRoomStatus(this.data.roomCode)
+      
+      // 计算每个成员在当前房间的虚拟"钱"
+      const memberBalances = new Map<number, number>()
+      
+      status.members.forEach((member) => {
+        memberBalances.set(member.userId, 0)
+      })
+      
+      status.transactions.forEach((tx) => {
+        const fromBalance = memberBalances.get(tx.fromUser.id) || 0
+        const toBalance = memberBalances.get(tx.toUser.id) || 0
+        memberBalances.set(tx.fromUser.id, fromBalance - tx.amount)
+        memberBalances.set(tx.toUser.id, toBalance + tx.amount)
+      })
+      
+      // 添加余额到成员数据，并格式化余额显示
+      const membersWithBalance = status.members.map((member) => {
+        const balance = memberBalances.get(member.userId) || 0
+        return {
+          ...member,
+          balance,
+          formattedBalance: `${balance >= 0 ? '+' : ''}${balance.toFixed(2)} 元`,
+        }
+      })
+      
+      // 格式化活动记录时间并反转顺序（最新的在前）
+      const formattedActivities = status.activities.reverse().map((activity) => ({
+        ...activity,
+        formattedTime: this.formatTime(activity.timestamp)
+      }))
+      
+      this.setData({ 
+        members: membersWithBalance,
+        activities: formattedActivities
+      })
+    } catch (err: any) {
+      console.error('加载房间状态失败:', err)
+    }
+  },
+
+  // 加载成员列表（保留用于初始化）
   async loadMembers() {
     try {
       const members = await roomApi.getRoomMembers(this.data.roomCode)
@@ -174,11 +220,15 @@ Page({
         memberBalances.set(tx.toUser.id, toBalance + tx.amount)
       })
       
-      // 添加余额到成员数据
-      const membersWithBalance = members.map((member) => ({
-        ...member,
-        balance: memberBalances.get(member.userId) || 0,
-      }))
+      // 添加余额到成员数据，并格式化余额显示
+      const membersWithBalance = members.map((member) => {
+        const balance = memberBalances.get(member.userId) || 0
+        return {
+          ...member,
+          balance,
+          formattedBalance: `${balance >= 0 ? '+' : ''}${balance.toFixed(2)} 元`,
+        }
+      })
       
       this.setData({ members: membersWithBalance })
     } catch (err: any) {
@@ -186,11 +236,16 @@ Page({
     }
   },
 
-  // 加载活动记录
+  // 加载活动记录（保留用于初始化）
   async loadActivities() {
     try {
       const activities = await activityApi.getRoomActivities(this.data.roomCode)
-      this.setData({ activities: activities.reverse() }) // 最新的在前
+      // 格式化时间并反转顺序（最新的在前）
+      const formattedActivities = activities.reverse().map((activity) => ({
+        ...activity,
+        formattedTime: this.formatTime(activity.timestamp)
+      }))
+      this.setData({ activities: formattedActivities })
     } catch (err: any) {
       console.error('加载活动记录失败:', err)
     }
@@ -198,13 +253,31 @@ Page({
 
   // 开始定时轮询
   startPolling() {
-    // 每5秒轮询一次
+    // 每5秒轮询一次房间状态
     const timer = setInterval(() => {
-      this.loadMembers()
-      this.loadActivities()
+      this.loadRoomStatus()
     }, 5000)
     
     this.setData({ pollTimer: timer })
+  },
+
+  // 复制房间ID
+  copyRoomCode() {
+    wx.setClipboardData({
+      data: this.data.roomCode,
+      success: () => {
+        wx.showToast({
+          title: '房间ID已复制',
+          icon: 'success',
+        })
+      },
+      fail: () => {
+        wx.showToast({
+          title: '复制失败',
+          icon: 'none',
+        })
+      },
+    })
   },
 
   // 分享房间
@@ -306,25 +379,29 @@ Page({
     })
   },
 
-  // 格式化时间
+  // 格式化时间 - 显示月日时分秒
   formatTime(timestamp: string) {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
-    const minutes = Math.floor(diff / 60000)
-    
-    if (minutes < 1) {
-      return '刚刚'
-    } else if (minutes < 60) {
-      return `${minutes}分钟前`
-    } else if (minutes < 1440) {
-      return `${Math.floor(minutes / 60)}小时前`
-    } else {
+    if (!timestamp) {
+      return ''
+    }
+
+    try {
+      const date = new Date(timestamp)
+      // 检查日期是否有效
+      if (isNaN(date.getTime())) {
+        console.error('无效的时间戳:', timestamp)
+        return ''
+      }
       const month = date.getMonth() + 1
       const day = date.getDate()
       const hour = date.getHours()
       const minute = date.getMinutes()
-      return `${month}-${day} ${hour}:${minute.toString().padStart(2, '0')}`
+      const second = date.getSeconds()
+      
+      return `${month}月${day}日 ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}`
+    } catch (err) {
+      console.error('格式化时间失败:', err, timestamp)
+      return ''
     }
   },
 })

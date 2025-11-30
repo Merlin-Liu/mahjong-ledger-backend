@@ -1,10 +1,7 @@
-// API工具函数
-// 开发环境：使用 localhost（需要在微信开发者工具中关闭域名校验）
-// 生产环境：需要配置为合法的 HTTPS 域名，并在微信小程序后台配置域名白名单
-const BASE_URL = 'http://localhost:80'  // 开发环境使用 localhost
-
-// 如果需要切换生产环境，请修改为：
-// const BASE_URL = 'https://your-api-domain.com'
+// API工具函数 - 使用微信云托管
+// 云环境配置
+const CLOUD_ENV = 'prod-7grjmb7rc97903a2'  // 云环境ID
+const CLOUD_SERVICE = 'express-xewk'  // 云托管服务名称
 
 interface ApiResponse<T = any> {
   code: number
@@ -12,9 +9,9 @@ interface ApiResponse<T = any> {
   data: T
 }
 
-// 通用请求函数
+// 通用请求函数 - 使用微信云托管 callContainer
 async function request<T = any>(
-  url: string,
+  path: string,
   options: {
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
     data?: any
@@ -22,24 +19,65 @@ async function request<T = any>(
   } = {}
 ): Promise<T> {
   return new Promise((resolve, reject) => {
-    wx.request({
-      url: `${BASE_URL}${url}`,
-      method: options.method || 'GET',
-      data: options.data || {},
+    // 在请求前打印日志
+    const method = options.method || 'GET'
+    const requestData = options.data || {}
+    console.log(`[API请求] ${method} ${path}`, {
+      method,
+      path,
+      data: requestData,
+      header: options.header,
+    })
+    
+    // 使用类型断言，因为 callContainer 可能不在类型定义中
+    const cloud = wx.cloud as any
+    cloud.callContainer({
+      config: {
+        env: CLOUD_ENV
+      },
+      path: path,
       header: {
-        'Content-Type': 'application/json',
+        'X-WX-SERVICE': CLOUD_SERVICE,
+        'content-type': 'application/json',
         ...options.header,
       },
-      success: (res) => {
+      method: options.method || 'GET',
+      data: options.data || {},
+      success: (res: any) => {
+        // 云托管返回的数据结构可能不同，需要适配
         const response = res.data as ApiResponse<T>
         if (response.code === 0) {
           resolve(response.data)
         } else {
-          reject(new Error(response.message || '请求失败'))
+          // 处理数据库相关错误
+          const errorMessage = response.message || '请求失败'
+          if (errorMessage.includes('resuming') || 
+              errorMessage.includes('CynosDB') ||
+              errorMessage.includes('数据库正在恢复中')) {
+            reject(new Error('数据库正在恢复中，请稍后重试'))
+          } else if (errorMessage.includes('数据库连接异常') ||
+                     errorMessage.includes('连接异常')) {
+            reject(new Error('数据库连接异常，请稍后重试'))
+          } else {
+            reject(new Error(errorMessage))
+          }
         }
       },
-      fail: (err) => {
-        reject(err)
+      fail: (err: any) => {
+        console.error('API请求失败:', err)
+        const errorMsg = err.errMsg || '请求失败'
+        // 处理数据库相关错误
+        if (errorMsg.includes('resuming') || 
+            errorMsg.includes('CynosDB') ||
+            errorMsg.includes('数据库正在恢复中')) {
+          reject(new Error('数据库正在恢复中，请稍后重试'))
+        } else if (errorMsg.includes('数据库连接异常') ||
+                   errorMsg.includes('连接异常') ||
+                   errorMsg.includes('ECONNRESET')) {
+          reject(new Error('数据库连接异常，请稍后重试'))
+        } else {
+          reject(new Error(errorMsg))
+        }
       },
     })
   })
@@ -68,6 +106,28 @@ export const userApi = {
       username: string
       createdAt: string
     }>(`/api/users/${userId}`)
+  },
+
+  // 获取用户的房间历史
+  getUserRooms(userId: number) {
+    return request<Array<{
+      room: {
+        id: number
+        code: string
+        name: string
+        owner: {
+          id: number
+          username: string
+        }
+        status: string
+        createdAt: string
+      }
+      membership: {
+        username: string
+        joinedAt: string
+        leftAt: string | null
+      }
+    }>>(`/api/users/${userId}/rooms`)
   },
 
   // 获取微信OpenID（从请求头获取，仅云开发环境）
@@ -165,6 +225,49 @@ export const roomApi = {
       joinedAt: string
       leftAt: string | null
     }>>(`/api/rooms/${code}/members`)
+  },
+
+  // 获取房间完整状态（成员、转账记录、活动记录）
+  getRoomStatus(code: string) {
+    return request<{
+      members: Array<{
+        id: number
+        userId: number
+        username: string
+        user: {
+          id: number
+          username: string
+        }
+        joinedAt: string
+        leftAt: string | null
+      }>
+      transactions: Array<{
+        id: number
+        fromUser: {
+          id: number
+          username: string
+        }
+        toUser: {
+          id: number
+          username: string
+        }
+        amount: number
+        description: string
+        createdAt: string
+      }>
+      activities: Array<{
+        type: 'join' | 'leave' | 'transaction'
+        userId?: number
+        username?: string
+        fromUserId?: number
+        fromUsername?: string
+        toUserId?: number
+        toUsername?: string
+        amount?: number
+        timestamp: string
+        message: string
+      }>
+    }>(`/api/rooms/${code}/status`)
   },
 }
 
