@@ -2,7 +2,7 @@
 // ============================================
 // 环境配置：设置为 true 使用本地开发环境，false 使用云托管生产环境
 // ============================================
-const IS_LOCAL_DEV = true  // 本地开发环境开关
+const IS_LOCAL_DEV = false  // 本地开发环境开关
 const LOCAL_API_BASE_URL = 'http://localhost:80'  // 本地开发API地址
 
 // 云托管配置
