@@ -24,8 +24,22 @@ async function init() {
     // 测试数据库连接
     await sequelize.authenticate();
     console.log("数据库连接成功！");
-    await sequelize.sync({ alter: true });
-    console.log("数据库表已重建完成！");
+
+    // 同步数据库表结构，忽略不存在的约束错误
+    try {
+      await sequelize.sync({ alter: true });
+      console.log("数据库表已重建完成！");
+    } catch (syncError) {
+      // 如果是不存在的约束错误，可以忽略（约束不存在时不需要删除）
+      if (syncError.name === 'SequelizeUnknownConstraintError') {
+        console.warn("警告: 尝试删除不存在的约束，已忽略:", syncError.constraint);
+        // 继续执行，表结构可能已经正确
+        console.log("数据库表同步完成（已忽略约束错误）！");
+      } else {
+        // 其他错误需要抛出
+        throw syncError;
+      }
+    }
   } catch (error) {
     console.error("数据库初始化失败:", error);
     throw error;

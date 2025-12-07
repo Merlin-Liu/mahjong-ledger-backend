@@ -102,8 +102,6 @@ router.post("/wx_openid_by_code", asyncHandler(async (req, res) => {
     return res.status(400).json(errorResponse("code 不能为空", 400));
   }
 
-  // 从环境变量获取小程序 appid 和 secret
-
   try {
     // 调用微信接口换取 openid
     const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${APP_ID}&secret=${APP_SECRET}&js_code=${code}&grant_type=authorization_code`;

@@ -1,6 +1,6 @@
 // index.ts
 import { userApi, roomApi } from '../../utils/api'
-import { getUserUniqueId } from '../../utils/util'
+import { getUserUniqueId, uploadFileToCloud } from '../../utils/util'
 
 interface IAppOption {
   globalData: {
@@ -237,11 +237,41 @@ Page({
   },
 
   // 对话框中选择头像
-  onDialogChooseAvatar(e: any) {
+  async onDialogChooseAvatar(e: any) {
     const { avatarUrl } = e.detail
-    this.setData({
-      dialogAvatarUrl: avatarUrl,
-    })
+    
+    // avatarUrl 是临时文件路径，如 wxfile://tmp_xxx.jpg
+    // 需要上传到云存储获取CDN URL
+    wx.showLoading({ title: '上传中...' })
+    
+    try {
+      // 上传到云存储，获取CDN URL
+      const cdnUrl = await uploadFileToCloud(avatarUrl)
+      
+      // 更新对话框中的头像URL为CDN地址
+      this.setData({
+        dialogAvatarUrl: cdnUrl,
+      })
+      
+      wx.hideLoading()
+      wx.showToast({
+        title: '头像选择成功',
+        icon: 'success',
+        duration: 1500,
+      })
+    } catch (err: any) {
+      wx.hideLoading()
+      console.error('上传头像失败:', err)
+      wx.showToast({
+        title: err.message || '上传头像失败',
+        icon: 'none',
+        duration: 2000,
+      })
+      // 即使上传失败，也显示临时文件（至少可以看到预览）
+      this.setData({
+        dialogAvatarUrl: avatarUrl,
+      })
+    }
   },
 
   // 对话框输入昵称

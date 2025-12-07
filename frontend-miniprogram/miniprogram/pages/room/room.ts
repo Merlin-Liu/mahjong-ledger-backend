@@ -218,6 +218,8 @@ Page({
           formattedBalance: `${balance >= 0 ? '+' : ''}${balance.toFixed(2)} 元`,
         }
       })
+
+      console.log('membersWithBalance', membersWithBalance)
       
       // 活动记录传递给组件，由组件自行格式化时间
       this.setData({ 

@@ -60,3 +60,35 @@ export const getUserUniqueId = (): string => {
   // 如果没有openid，使用本地生成的唯一ID
   return generateUniqueId()
 }
+
+/**
+ * 上传文件到微信云存储，返回CDN URL
+ * @param filePath 本地临时文件路径（如 wxfile://tmp_xxx.jpg）
+ * @param cloudPath 云存储路径（可选，默认自动生成）
+ * @returns Promise<string> 返回云存储的CDN URL（fileID）
+ */
+export const uploadFileToCloud = (filePath: string, cloudPath?: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    // 如果没有指定云存储路径，自动生成一个
+    if (!cloudPath) {
+      const timestamp = Date.now()
+      const random = Math.random().toString(36).substring(2, 9)
+      const ext = filePath.substring(filePath.lastIndexOf('.')) || '.jpg'
+      cloudPath = `avatars/${timestamp}_${random}${ext}`
+    }
+
+    wx.cloud.uploadFile({
+      cloudPath: cloudPath,
+      filePath: filePath,
+      success: (res) => {
+        // res.fileID 就是云存储的CDN URL，可以直接使用
+        console.log('文件上传成功，CDN URL:', res.fileID)
+        resolve(res.fileID)
+      },
+      fail: (err) => {
+        console.error('文件上传失败:', err)
+        reject(new Error(err.errMsg || '文件上传失败'))
+      },
+    })
+  })
+}
