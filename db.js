@@ -97,8 +97,10 @@ async function init() {
       console.error("删除唯一索引时出现错误:", indexError.message);
     }
 
-    await sequelize.sync({ alter: true });
-    console.log("数据库模型同步成功！");
+    // 使用 force: true 重建所有表，确保表结构完全匹配模型定义
+    // 由于已经清除了所有数据，重建表是安全的
+    await sequelize.sync({ force: true });
+    console.log("数据库表已重建完成！");
   } catch (error) {
     console.error("数据库初始化失败:", error);
     throw error;
