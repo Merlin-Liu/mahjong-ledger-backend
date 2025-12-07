@@ -19,9 +19,11 @@ interface Member {
   id: number
   userId: number
   username: string
+  avatarUrl?: string | null  // 头像URL（从 user.avatarUrl 提取到顶层）
   user: {
     id: number
     username: string
+    avatarUrl: string | null
   }
   joinedAt: string
   leftAt: string | null
@@ -180,6 +182,7 @@ Page({
         const balance = memberBalances.get(member.userId) || 0
         return {
           ...member,
+          avatarUrl: member.user?.avatarUrl || null, // 将头像字段提取到顶层
           balance,
           formattedBalance: `${balance >= 0 ? '+' : ''}${balance.toFixed(2)} 元`,
         }
@@ -225,6 +228,7 @@ Page({
         const balance = memberBalances.get(member.userId) || 0
         return {
           ...member,
+          avatarUrl: member.user?.avatarUrl || null, // 将头像字段提取到顶层
           balance,
           formattedBalance: `${balance >= 0 ? '+' : ''}${balance.toFixed(2)} 元`,
         }

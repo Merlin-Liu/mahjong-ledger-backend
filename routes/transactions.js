@@ -74,12 +74,12 @@ router.post("/", asyncHandler(async (req, res) => {
       {
         model: User,
         as: "fromUser",
-        attributes: ["id", "username"],
+        attributes: ["id", "username", "avatarUrl"],
       },
       {
         model: User,
         as: "toUser",
-        attributes: ["id", "username"],
+        attributes: ["id", "username", "avatarUrl"],
       },
     ],
   });
@@ -91,10 +91,12 @@ router.post("/", asyncHandler(async (req, res) => {
     fromUser: {
       id: transaction.fromUser.id,
       username: transaction.fromUser.username,
+      avatarUrl: transaction.fromUser.avatarUrl,
     },
     toUser: {
       id: transaction.toUser.id,
       username: transaction.toUser.username,
+      avatarUrl: transaction.toUser.avatarUrl,
     },
     amount: parseFloat(transaction.amount),
     description: transaction.description,

@@ -183,12 +183,57 @@ Page({
 
   // 创建或更新用户
   async createOrUpdateUser(username: string, avatarUrl: string) {
-    // 获取用户唯一ID（本地生成，无需后端）
-    const globalData = app.globalData as IAppOption['globalData']
-    const uniqueUserId = globalData.uniqueUserId || getUserUniqueId()
+    // 获取微信真实 OpenID
+    let wxOpenId: string | null = null
     
-    // 使用本地生成的唯一ID作为wxOpenId传给后端
-    const userData = await userApi.createOrGetUser(uniqueUserId, username)
+    try {
+      // 先尝试从本地存储获取已保存的 openid
+      wxOpenId = wx.getStorageSync('wxOpenId')
+      
+      // 如果没有，则通过 wx.login 获取
+      if (!wxOpenId) {
+        const loginRes = await new Promise<any>((resolve, reject) => {
+          wx.login({
+            success: resolve,
+            fail: reject,
+          })
+        })
+        
+        if (loginRes.code) {
+          // 通过 code 换取 openid
+          const openIdRes = await userApi.getWxOpenIdByCode(loginRes.code)
+          wxOpenId = openIdRes.openid
+          
+          // 保存 openid 到本地存储
+          wx.setStorageSync('wxOpenId', wxOpenId)
+        }
+      }
+    } catch (err: any) {
+      // 记录详细的错误信息，方便调试
+      const errorMessage = err.message || err.errMsg || '未知错误'
+      console.error('获取微信 OpenID 失败:', {
+        error: errorMessage,
+        details: err,
+        hint: '如果是本地开发，请确保后端已配置 WX_APPID 和 WX_SECRET 环境变量'
+      })
+      
+      // 如果获取 openid 失败，使用本地生成的唯一ID作为降级方案
+      const globalData = app.globalData as IAppOption['globalData']
+      wxOpenId = globalData.uniqueUserId || getUserUniqueId()
+      console.log('使用本地生成的唯一ID作为降级方案:', wxOpenId)
+    }
+    
+    // 使用微信 OpenID（或降级方案）作为 wxOpenId 传给后端
+    const userData = await userApi.createOrGetUser(wxOpenId || '', username, avatarUrl)
+    
+    // 如果是已存在的用户（更新操作），显示提示
+    if (userData.isExistingUser) {
+      wx.showToast({
+        title: '欢迎回来，已更新您的信息',
+        icon: 'success',
+        duration: 2000,
+      })
+    }
     
     const userInfo: IAppOption['globalData']['userInfo'] = {
       id: userData.id,
@@ -206,7 +251,7 @@ Page({
     })
     
     // 保存到全局和本地存储
-    globalData.userInfo = userInfo
+    app.globalData.userInfo = userInfo
     wx.setStorageSync('userInfo', userInfo)
   },
 

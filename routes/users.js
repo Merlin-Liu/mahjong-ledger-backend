@@ -11,19 +11,25 @@ const router = express.Router();
  * Body: { wxOpenId?: string, username: string }
  */
 router.post("/", asyncHandler(async (req, res) => {
-  const { wxOpenId, username } = req.body;
+  const { wxOpenId, username, avatarUrl } = req.body;
 
   if (!username || username.trim() === "") {
     return res.status(400).json(errorResponse("用户名不能为空", 400));
   }
 
   let user;
+  let isExistingUser = false;
+
   if (wxOpenId) {
     // 如果提供了微信OpenID，先查找是否已存在
     user = await User.findOne({ where: { wxOpenId } });
     if (user) {
-      // 更新用户名
+      // 更新用户名和头像
+      isExistingUser = true;
       user.username = username.trim();
+      if (avatarUrl) {
+        user.avatarUrl = avatarUrl;
+      }
       await user.save();
     }
   }
@@ -33,6 +39,7 @@ router.post("/", asyncHandler(async (req, res) => {
     user = await User.create({
       wxOpenId: wxOpenId || null,
       username: username.trim(),
+      avatarUrl: avatarUrl || null,
     });
   }
 
@@ -40,7 +47,9 @@ router.post("/", asyncHandler(async (req, res) => {
     id: user.id,
     wxOpenId: user.wxOpenId,
     username: user.username,
+    avatarUrl: user.avatarUrl,
     createdAt: user.createdAt,
+    isExistingUser, // 标识是否是已存在的用户（更新操作）
   }));
 }));
 
@@ -60,6 +69,7 @@ router.get("/:id", asyncHandler(async (req, res) => {
     id: user.id,
     wxOpenId: user.wxOpenId,
     username: user.username,
+    avatarUrl: user.avatarUrl,
     createdAt: user.createdAt,
   }));
 }));
@@ -161,7 +171,7 @@ router.get("/:id/rooms", asyncHandler(async (req, res) => {
           {
             model: User,
             as: "owner",
-            attributes: ["id", "username"],
+            attributes: ["id", "username", "avatarUrl"],
           },
         ],
       },
@@ -181,7 +191,7 @@ router.get("/:id/rooms", asyncHandler(async (req, res) => {
           {
             model: User,
             as: "user",
-            attributes: ["id", "username"],
+            attributes: ["id", "username", "avatarUrl"],
           },
         ],
       });
@@ -193,12 +203,12 @@ router.get("/:id/rooms", asyncHandler(async (req, res) => {
           {
             model: User,
             as: "fromUser",
-            attributes: ["id", "username"],
+            attributes: ["id", "username", "avatarUrl"],
           },
           {
             model: User,
             as: "toUser",
-            attributes: ["id", "username"],
+            attributes: ["id", "username", "avatarUrl"],
           },
         ],
       });
@@ -211,6 +221,7 @@ router.get("/:id/rooms", asyncHandler(async (req, res) => {
           owner: {
             id: room.owner.id,
             username: room.owner.username,
+            avatarUrl: room.owner.avatarUrl,
           },
           status: room.status,
           createdAt: room.createdAt,

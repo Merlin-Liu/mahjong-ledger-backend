@@ -22,6 +22,11 @@ function defineUser(sequelize) {
       allowNull: false,
       comment: "用户名",
     },
+    avatarUrl: {
+      type: DataTypes.STRING(512),
+      allowNull: true,
+      comment: "用户头像URL",
+    },
   }, {
     tableName: "users",
     timestamps: true,

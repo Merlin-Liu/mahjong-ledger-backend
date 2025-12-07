@@ -1,5 +1,11 @@
-// API工具函数 - 使用微信云托管
-// 云环境配置
+// API工具函数 - 支持本地开发和生产环境
+// ============================================
+// 环境配置：设置为 true 使用本地开发环境，false 使用云托管生产环境
+// ============================================
+const IS_LOCAL_DEV = true  // 本地开发环境开关
+const LOCAL_API_BASE_URL = 'http://localhost:80'  // 本地开发API地址
+
+// 云托管配置
 const CLOUD_ENV = 'prod-7grjmb7rc97903a2'  // 云环境ID
 const CLOUD_SERVICE = 'express-xewk'  // 云托管服务名称
 
@@ -9,8 +15,26 @@ interface ApiResponse<T = any> {
   data: T
 }
 
-// 通用请求函数 - 使用微信云托管 callContainer
-async function request<T = any>(
+// 统一的错误处理函数
+function handleApiError(error: string | Error): Error {
+  const errorMessage = typeof error === 'string' ? error : error.message || '请求失败'
+  
+  // 处理数据库相关错误
+  if (errorMessage.includes('resuming') || 
+      errorMessage.includes('CynosDB') ||
+      errorMessage.includes('数据库正在恢复中')) {
+    return new Error('数据库正在恢复中，请稍后重试')
+  } else if (errorMessage.includes('数据库连接异常') ||
+             errorMessage.includes('连接异常') ||
+             errorMessage.includes('ECONNRESET')) {
+    return new Error('数据库连接异常，请稍后重试')
+  }
+  
+  return new Error(errorMessage)
+}
+
+// 本地开发环境请求函数 - 使用 wx.request
+function requestLocal<T = any>(
   path: string,
   options: {
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
@@ -19,13 +43,56 @@ async function request<T = any>(
   } = {}
 ): Promise<T> {
   return new Promise((resolve, reject) => {
-    // 在请求前打印日志
     const method = options.method || 'GET'
-    const requestData = options.data || {}
-    console.log(`[API请求] ${method} ${path}`, {
+    const url = `${LOCAL_API_BASE_URL}${path}`
+    
+    console.log(`[本地API请求] ${method} ${url}`, {
       method,
       path,
-      data: requestData,
+      data: options.data,
+      header: options.header,
+    })
+    
+    wx.request({
+      url,
+      method: method as any,
+      data: options.data || {},
+      header: {
+        'content-type': 'application/json',
+        ...options.header,
+      },
+      success: (res) => {
+        const response = res.data as ApiResponse<T>
+        if (response.code === 0) {
+          resolve(response.data)
+        } else {
+          reject(handleApiError(response.message || '请求失败'))
+        }
+      },
+      fail: (err) => {
+        console.error('[本地API请求失败]', err)
+        reject(handleApiError(err.errMsg || '请求失败'))
+      },
+    })
+  })
+}
+
+// 生产环境请求函数 - 使用微信云托管 callContainer
+function requestCloud<T = any>(
+  path: string,
+  options: {
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+    data?: any
+    header?: Record<string, string>
+  } = {}
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const method = options.method || 'GET'
+    
+    console.log(`[云托管API请求] ${method} ${path}`, {
+      method,
+      path,
+      data: options.data,
       header: options.header,
     })
     
@@ -33,7 +100,7 @@ async function request<T = any>(
     const cloud = wx.cloud as any
     cloud.callContainer({
       config: {
-        env: CLOUD_ENV
+        env: CLOUD_ENV,
       },
       path: path,
       header: {
@@ -41,60 +108,54 @@ async function request<T = any>(
         'content-type': 'application/json',
         ...options.header,
       },
-      method: options.method || 'GET',
+      method: method,
       data: options.data || {},
       success: (res: any) => {
-        // 云托管返回的数据结构可能不同，需要适配
         const response = res.data as ApiResponse<T>
         if (response.code === 0) {
           resolve(response.data)
         } else {
-          // 处理数据库相关错误
-          const errorMessage = response.message || '请求失败'
-          if (errorMessage.includes('resuming') || 
-              errorMessage.includes('CynosDB') ||
-              errorMessage.includes('数据库正在恢复中')) {
-            reject(new Error('数据库正在恢复中，请稍后重试'))
-          } else if (errorMessage.includes('数据库连接异常') ||
-                     errorMessage.includes('连接异常')) {
-            reject(new Error('数据库连接异常，请稍后重试'))
-          } else {
-            reject(new Error(errorMessage))
-          }
+          reject(handleApiError(response.message || '请求失败'))
         }
       },
       fail: (err: any) => {
-        console.error('API请求失败:', err)
-        const errorMsg = err.errMsg || '请求失败'
-        // 处理数据库相关错误
-        if (errorMsg.includes('resuming') || 
-            errorMsg.includes('CynosDB') ||
-            errorMsg.includes('数据库正在恢复中')) {
-          reject(new Error('数据库正在恢复中，请稍后重试'))
-        } else if (errorMsg.includes('数据库连接异常') ||
-                   errorMsg.includes('连接异常') ||
-                   errorMsg.includes('ECONNRESET')) {
-          reject(new Error('数据库连接异常，请稍后重试'))
-        } else {
-          reject(new Error(errorMsg))
-        }
+        console.error('[云托管API请求失败]', err)
+        reject(handleApiError(err.errMsg || '请求失败'))
       },
     })
   })
 }
 
+// 通用请求函数 - 根据环境配置自动选择请求方式
+async function request<T = any>(
+  path: string,
+  options: {
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+    data?: any
+    header?: Record<string, string>
+  } = {}
+): Promise<T> {
+  if (IS_LOCAL_DEV) {
+    return requestLocal<T>(path, options)
+  } else {
+    return requestCloud<T>(path, options)
+  }
+}
+
 // 用户相关API
 export const userApi = {
   // 创建或获取用户
-  createOrGetUser(wxOpenId: string, username: string) {
+  createOrGetUser(wxOpenId: string, username: string, avatarUrl?: string) {
     return request<{
       id: number
       wxOpenId: string | null
       username: string
+      avatarUrl: string | null
       createdAt: string
+      isExistingUser: boolean  // 是否是已存在的用户（更新操作）
     }>('/api/users', {
       method: 'POST',
-      data: { wxOpenId, username },
+      data: { wxOpenId, username, avatarUrl },
     })
   },
 
@@ -104,6 +165,7 @@ export const userApi = {
       id: number
       wxOpenId: string | null
       username: string
+      avatarUrl: string | null
       createdAt: string
     }>(`/api/users/${userId}`)
   },
@@ -118,6 +180,7 @@ export const userApi = {
         owner: {
           id: number
           username: string
+          avatarUrl: string | null
         }
         status: string
         createdAt: string
@@ -170,12 +233,18 @@ export const roomApi = {
       owner: {
         id: number
         username: string
+        avatarUrl: string | null
       }
       status: string
       members: Array<{
         id: number
         userId: number
         username: string
+        user: {
+          id: number
+          username: string
+          avatarUrl: string | null
+        }
         joinedAt: string
       }>
       createdAt: string
@@ -221,6 +290,7 @@ export const roomApi = {
       user: {
         id: number
         username: string
+        avatarUrl: string | null
       }
       joinedAt: string
       leftAt: string | null
@@ -237,6 +307,7 @@ export const roomApi = {
         user: {
           id: number
           username: string
+          avatarUrl: string | null
         }
         joinedAt: string
         leftAt: string | null
@@ -288,10 +359,12 @@ export const transactionApi = {
       fromUser: {
         id: number
         username: string
+        avatarUrl: string | null
       }
       toUser: {
         id: number
         username: string
+        avatarUrl: string | null
       }
       amount: number
       description: string
@@ -309,10 +382,12 @@ export const transactionApi = {
       fromUser: {
         id: number
         username: string
+        avatarUrl: string | null
       }
       toUser: {
         id: number
         username: string
+        avatarUrl: string | null
       }
       amount: number
       description: string

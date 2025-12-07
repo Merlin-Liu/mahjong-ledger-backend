@@ -44,6 +44,7 @@ router.post("/", asyncHandler(async (req, res) => {
     roomId: room.id,
     userId: ownerId,
     username: owner.username,
+    avatarUrl: owner.avatarUrl,
     joinedAt: new Date(),
   });
 
@@ -63,14 +64,14 @@ router.post("/", asyncHandler(async (req, res) => {
  */
 router.get("/:code", asyncHandler(async (req, res) => {
   const { code } = req.params;
-  
+
   const room = await Room.findOne({
     where: { code },
     include: [
       {
         model: User,
         as: "owner",
-        attributes: ["id", "username"],
+        attributes: ["id", "username", "avatarUrl"],
       },
       {
         model: RoomMember,
@@ -81,7 +82,7 @@ router.get("/:code", asyncHandler(async (req, res) => {
           {
             model: User,
             as: "user",
-            attributes: ["id", "username"],
+            attributes: ["id", "username", "avatarUrl"],
           },
         ],
       },
@@ -99,12 +100,18 @@ router.get("/:code", asyncHandler(async (req, res) => {
     owner: {
       id: room.owner.id,
       username: room.owner.username,
+      avatarUrl: room.owner.avatarUrl,
     },
     status: room.status,
     members: room.members.map(m => ({
       id: m.user.id,
       userId: m.userId,
       username: m.username,
+      user: {
+        id: m.user.id,
+        username: m.user.username,
+        avatarUrl: m.user.avatarUrl,
+      },
       joinedAt: m.joinedAt,
     })),
     createdAt: room.createdAt,
@@ -263,7 +270,7 @@ router.post("/:code/close", asyncHandler(async (req, res) => {
  */
 router.get("/:code/members", asyncHandler(async (req, res) => {
   const { code } = req.params;
-  
+
   const room = await Room.findOne({ where: { code } });
   if (!room) {
     return res.status(404).json(errorResponse("房间不存在", 404));
@@ -275,7 +282,7 @@ router.get("/:code/members", asyncHandler(async (req, res) => {
       {
         model: User,
         as: "user",
-        attributes: ["id", "username"],
+        attributes: ["id", "username", "avatarUrl"],
       },
     ],
     order: [["joinedAt", "ASC"]],
@@ -288,6 +295,7 @@ router.get("/:code/members", asyncHandler(async (req, res) => {
     user: {
       id: m.user.id,
       username: m.user.username,
+      avatarUrl: m.user.avatarUrl,
     },
     joinedAt: m.joinedAt,
     leftAt: m.leftAt,
@@ -300,7 +308,7 @@ router.get("/:code/members", asyncHandler(async (req, res) => {
  */
 router.get("/:code/transactions", asyncHandler(async (req, res) => {
   const { code } = req.params;
-  
+
   const room = await Room.findOne({ where: { code } });
   if (!room) {
     return res.status(404).json(errorResponse("房间不存在", 404));
@@ -312,12 +320,12 @@ router.get("/:code/transactions", asyncHandler(async (req, res) => {
       {
         model: User,
         as: "fromUser",
-        attributes: ["id", "username"],
+        attributes: ["id", "username", "avatarUrl"],
       },
       {
         model: User,
         as: "toUser",
-        attributes: ["id", "username"],
+        attributes: ["id", "username", "avatarUrl"],
       },
     ],
     order: [["createdAt", "DESC"]],
@@ -328,10 +336,12 @@ router.get("/:code/transactions", asyncHandler(async (req, res) => {
     fromUser: {
       id: t.fromUser.id,
       username: t.fromUser.username,
+      avatarUrl: t.fromUser.avatarUrl,
     },
     toUser: {
       id: t.toUser.id,
       username: t.toUser.username,
+      avatarUrl: t.toUser.avatarUrl,
     },
     amount: parseFloat(t.amount),
     description: t.description,
@@ -345,7 +355,7 @@ router.get("/:code/transactions", asyncHandler(async (req, res) => {
  */
 router.get("/:code/activities", asyncHandler(async (req, res) => {
   const { code } = req.params;
-  
+
   const room = await Room.findOne({ where: { code } });
   if (!room) {
     return res.status(404).json(errorResponse("房间不存在", 404));
@@ -394,12 +404,12 @@ router.get("/:code/activities", asyncHandler(async (req, res) => {
       {
         model: User,
         as: "fromUser",
-        attributes: ["id", "username"],
+        attributes: ["id", "username", "avatarUrl"],
       },
       {
         model: User,
         as: "toUser",
-        attributes: ["id", "username"],
+        attributes: ["id", "username", "avatarUrl"],
       },
     ],
     order: [["createdAt", "ASC"]],
@@ -430,7 +440,7 @@ router.get("/:code/activities", asyncHandler(async (req, res) => {
  */
 router.get("/:code/status", asyncHandler(async (req, res) => {
   const { code } = req.params;
-  
+
   const room = await Room.findOne({ where: { code } });
   if (!room) {
     return res.status(404).json(errorResponse("房间不存在", 404));
@@ -443,7 +453,7 @@ router.get("/:code/status", asyncHandler(async (req, res) => {
       {
         model: User,
         as: "user",
-        attributes: ["id", "username"],
+        attributes: ["id", "username", "avatarUrl"],
       },
     ],
     order: [["joinedAt", "ASC"]],
@@ -456,12 +466,12 @@ router.get("/:code/status", asyncHandler(async (req, res) => {
       {
         model: User,
         as: "fromUser",
-        attributes: ["id", "username"],
+        attributes: ["id", "username", "avatarUrl"],
       },
       {
         model: User,
         as: "toUser",
-        attributes: ["id", "username"],
+        attributes: ["id", "username", "avatarUrl"],
       },
     ],
     order: [["createdAt", "DESC"]],
@@ -514,6 +524,7 @@ router.get("/:code/status", asyncHandler(async (req, res) => {
       user: {
         id: m.user.id,
         username: m.user.username,
+        avatarUrl: m.user.avatarUrl,
       },
       joinedAt: m.joinedAt,
       leftAt: m.leftAt,
@@ -523,10 +534,12 @@ router.get("/:code/status", asyncHandler(async (req, res) => {
       fromUser: {
         id: t.fromUser.id,
         username: t.fromUser.username,
+        avatarUrl: t.fromUser.avatarUrl,
       },
       toUser: {
         id: t.toUser.id,
         username: t.toUser.username,
+        avatarUrl: t.toUser.avatarUrl,
       },
       amount: parseFloat(t.amount),
       description: t.description,

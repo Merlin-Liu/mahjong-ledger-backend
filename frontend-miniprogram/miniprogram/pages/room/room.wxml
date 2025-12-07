@@ -14,7 +14,7 @@
     <scroll-view class="members-scroll" scroll-x="true" enable-flex="true">
       <view class="members-list">
         <view class="member-item" wx:for="{{members}}" wx:key="id">
-          <image class="member-avatar" src="https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0" mode="aspectFill"></image>
+          <image class="member-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
           <view class="member-name">{{item.username}}</view>
           <view class="member-balance {{item.balance >= 0 ? 'positive' : 'negative'}}">
             {{item.formattedBalance}}
