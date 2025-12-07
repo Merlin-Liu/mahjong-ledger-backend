@@ -48,6 +48,37 @@ router.post("/", asyncHandler(async (req, res) => {
     joinedAt: new Date(),
   });
 
+  // ====== 测试用，自动加入一个测试用户进入房间 ======
+  const testUserAvatarUrl = 'https://himg.bdimg.com/sys/portraitn/item/public.1.88a49878.E-rOvrkJXaMlqINvh2SzAA?_d=29418018';
+  let testUser = await User.findOne({
+    where: {
+      username: '测试用户',
+      wxOpenId: 'test_user_openid' // 确保是测试用户，不是真实用户
+    }
+  });
+  if (!testUser) {
+    testUser = await User.create({
+      wxOpenId: 'test_user_openid',
+      username: '测试用户',
+      avatarUrl: testUserAvatarUrl,
+    });
+  } else {
+    // 如果测试用户已存在，确保头像是最新的
+    if (testUser.avatarUrl !== testUserAvatarUrl) {
+      testUser.avatarUrl = testUserAvatarUrl;
+      await testUser.save();
+    }
+  }
+  if (testUser.id !== ownerId) {
+    await RoomMember.create({
+      roomId: room.id,
+      userId: testUser.id,
+      username: testUser.username,
+      avatarUrl: testUser.avatarUrl,
+      joinedAt: new Date(),
+    });
+  }
+
   res.json(successResponse({
     id: room.id,
     code: room.code,

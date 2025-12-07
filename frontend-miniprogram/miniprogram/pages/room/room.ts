@@ -187,6 +187,8 @@ Page({
           formattedBalance: `${balance >= 0 ? '+' : ''}${balance.toFixed(2)} 元`,
         }
       })
+
+      console.log('membersWithBalance', membersWithBalance)
       
       // 格式化活动记录时间并反转顺序（最新的在前）
       const formattedActivities = status.activities.reverse().map((activity) => ({
