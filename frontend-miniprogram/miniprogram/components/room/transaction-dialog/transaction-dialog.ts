@@ -25,8 +25,7 @@ Component({
    * 组件的初始数据
    */
   data: {
-    transactionAmount: '',
-    transactionDescription: ''
+    transactionAmount: ''
   },
 
   /**
@@ -40,24 +39,15 @@ Component({
       this.triggerEvent('amountinput', { value: e.detail.value })
     },
 
-    onDescriptionInput(e: any) {
-      this.setData({
-        transactionDescription: e.detail.value
-      })
-      this.triggerEvent('descriptioninput', { value: e.detail.value })
-    },
-
     onConfirm() {
       this.triggerEvent('confirm', {
-        amount: this.data.transactionAmount,
-        description: this.data.transactionDescription
+        amount: this.data.transactionAmount
       })
     },
 
     onCancel() {
       this.setData({
-        transactionAmount: '',
-        transactionDescription: ''
+        transactionAmount: ''
       })
       this.triggerEvent('cancel')
     }
@@ -68,8 +58,7 @@ Component({
       if (visible) {
         // 对话框打开时重置表单
         this.setData({
-          transactionAmount: '',
-          transactionDescription: ''
+          transactionAmount: ''
         })
       }
     },
@@ -77,8 +66,7 @@ Component({
       if (targetMember && this.data.visible) {
         // 切换目标成员时重置表单
         this.setData({
-          transactionAmount: '',
-          transactionDescription: ''
+          transactionAmount: ''
         })
       }
     }

@@ -25,16 +25,6 @@
           maxlength="10"
         />
       </view>
-      <view class="transaction-form-item">
-        <text class="transaction-label">备注（可选）</text>
-        <input
-          class="transaction-input"
-          value="{{transactionDescription}}"
-          placeholder="请输入备注"
-          bind:input="onDescriptionInput"
-          maxlength="50"
-        />
-      </view>
     </view>
   </view>
 </t-dialog>

@@ -321,10 +321,9 @@ Page({
 
   // 确认转账
   async onTransactionConfirm(e: any) {
-    const { amount, description } = e.detail
+    const { amount } = e.detail
     const { targetMember, roomCode, userId } = this.data
     const transactionAmount = amount
-    const transactionDescription = description
 
     if (!targetMember) {
       return
@@ -347,7 +346,7 @@ Page({
         userId,
         targetMember.userId,
         amountNum,
-        transactionDescription.trim() || undefined
+        undefined
       )
 
       wx.showToast({
