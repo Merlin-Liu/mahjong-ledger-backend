@@ -1,0 +1,16 @@
+<!--room-actions.wxml-->
+<view class="actions">
+  <button class="btn-action btn-share" open-type="share">
+    <text class="btn-icon">📤</text>
+    <text class="btn-text">邀请好友</text>
+  </button>
+  <button class="btn-action btn-leave" bindtap="onLeaveRoom">
+    <text class="btn-icon">🚪</text>
+    <text class="btn-text">离开房间</text>
+  </button>
+  <button class="btn-action btn-close" bindtap="onCloseRoom" wx:if="{{isOwner}}">
+    <text class="btn-icon">🔒</text>
+    <text class="btn-text">结束房间</text>
+  </button>
+</view>
+

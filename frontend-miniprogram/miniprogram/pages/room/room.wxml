@@ -2,97 +2,31 @@
 <navigation-bar title="房间" back="{{true}}" color="black" background="#FFF"></navigation-bar>
 
 <view class="page-container">
-  <!-- 成员列表 - 横向滚动 -->
-  <view class="members-section">
-    <view class="section-header">
-      <view class="section-title">房间成员</view>
-      <view class="room-code-display" bindtap="copyRoomCode">
-        <text class="room-code-label">房间ID: {{roomCode}}</text>
-        <text class="copy-icon">📋</text>
-      </view>
-    </view>
-    <scroll-view class="members-scroll" scroll-x="true" enable-flex="true">
-      <view class="members-list">
-        <view class="member-item" wx:for="{{members}}" wx:key="id" bindtap="onMemberTap" data-member="{{item}}">
-          <image class="member-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
-          <view class="member-name">{{item.username}}</view>
-          <view class="member-balance {{item.balance >= 0 ? 'positive' : 'negative'}}">
-            {{item.formattedBalance}}
-          </view>
-        </view>
-      </view>
-    </scroll-view>
-  </view>
+  <!-- 成员列表组件 -->
+  <member-list
+    members="{{members}}"
+    room-code="{{roomCode}}"
+    bind:membertap="onMemberTap"
+  ></member-list>
 
-  <!-- 房间日志 - 占满剩余区域 -->
-  <view class="activities-section">
-    <view class="section-title">房间日志</view>
-    <scroll-view class="activities-scroll" scroll-y="true">
-      <view class="activities-list">
-        <view class="activity-item" wx:for="{{activities}}" wx:key="index">
-          <view class="activity-time">{{item.formattedTime}}</view>
-          <view class="activity-message">{{item.message}}</view>
-        </view>
-        <view class="empty-tip" wx:if="{{activities.length === 0}}">暂无日志</view>
-      </view>
-    </scroll-view>
-  </view>
+  <!-- 房间日志组件 -->
+  <room-log activities="{{activities}}"></room-log>
 
-  <!-- 操作按钮 -->
-  <view class="actions">
-    <button class="btn-action btn-share" open-type="share">
-      <text class="btn-icon">📤</text>
-      <text class="btn-text">邀请好友</text>
-    </button>
-    <button class="btn-action btn-leave" bindtap="leaveRoom">
-      <text class="btn-icon">🚪</text>
-      <text class="btn-text">离开房间</text>
-    </button>
-    <button class="btn-action btn-close" bindtap="closeRoom" wx:if="{{isOwner}}">
-      <text class="btn-icon">🔒</text>
-      <text class="btn-text">结束房间</text>
-    </button>
-  </view>
+  <!-- 操作按钮组件 -->
+  <room-actions
+    is-owner="{{isOwner}}"
+    room-code="{{roomCode}}"
+    user-id="{{userId}}"
+    bind:leaveroom="onLeaveRoomSuccess"
+    bind:closeroom="onCloseRoomSuccess"
+  ></room-actions>
 
-  <!-- 转账对话框 -->
-  <t-dialog
+  <!-- 转账对话框组件 -->
+  <transaction-dialog
     visible="{{showTransactionDialog}}"
-    title="向 {{targetMember.username}} 转账"
+    target-member="{{targetMember}}"
     bind:confirm="onTransactionConfirm"
     bind:cancel="onTransactionCancel"
-    confirm-btn="确认转账"
-    cancel-btn="取消"
-    async-close="{{true}}"
-  >
-    <view slot="content" class="transaction-dialog-content">
-      <view class="transaction-target">
-        <image class="transaction-target-avatar" src="{{targetMember.avatarUrl}}" mode="aspectFill"></image>
-        <text class="transaction-target-name">{{targetMember.username}}</text>
-      </view>
-      <view class="transaction-form">
-        <view class="transaction-form-item">
-          <text class="transaction-label">转账金额（元）</text>
-          <input
-            class="transaction-input"
-            type="digit"
-            value="{{transactionAmount}}"
-            placeholder="请输入转账金额"
-            bind:input="onTransactionAmountInput"
-            maxlength="10"
-          />
-        </view>
-        <view class="transaction-form-item">
-          <text class="transaction-label">备注（可选）</text>
-          <input
-            class="transaction-input"
-            value="{{transactionDescription}}"
-            placeholder="请输入备注"
-            bind:input="onTransactionDescriptionInput"
-            maxlength="50"
-          />
-        </view>
-      </view>
-    </view>
-  </t-dialog>
+  ></transaction-dialog>
 </view>
 

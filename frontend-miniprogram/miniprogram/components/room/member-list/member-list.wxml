@@ -1,0 +1,22 @@
+<!--member-list.wxml-->
+<view class="members-section">
+  <view class="section-header">
+    <view class="section-title">房间成员</view>
+    <view class="room-code-display" bindtap="onCopyRoomCode">
+      <text class="room-code-label">房间ID: {{roomCode}}</text>
+      <text class="copy-icon">📋</text>
+    </view>
+  </view>
+  <scroll-view class="members-scroll" scroll-x="true" enable-flex="true">
+    <view class="members-list">
+      <view class="member-item" wx:for="{{members}}" wx:key="id" bindtap="onMemberTap" data-member="{{item}}">
+        <image class="member-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+        <view class="member-name">{{item.username}}</view>
+        <view class="member-balance {{item.balance >= 0 ? 'positive' : 'negative'}}">
+          {{item.formattedBalance}}
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+

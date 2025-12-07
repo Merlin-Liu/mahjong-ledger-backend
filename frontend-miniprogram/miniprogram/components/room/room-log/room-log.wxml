@@ -1,0 +1,14 @@
+<!--room-log.wxml-->
+<view class="log-section">
+  <view class="section-title">房间日志</view>
+  <scroll-view class="log-scroll" scroll-y="true">
+    <view class="log-list">
+      <view class="log-item" wx:for="{{formattedActivities}}" wx:key="index">
+        <view class="log-time">{{item.formattedTime}}</view>
+        <view class="log-message">{{item.message}}</view>
+      </view>
+      <view class="empty-tip" wx:if="{{formattedActivities.length === 0}}">暂无日志</view>
+    </view>
+  </scroll-view>
+</view>
+

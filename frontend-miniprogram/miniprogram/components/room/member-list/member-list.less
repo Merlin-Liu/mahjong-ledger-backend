@@ -1,0 +1,97 @@
+/**member-list.less**/
+/* 成员列表区域 - 固定在顶部 */
+.members-section {
+  background-color: #fff;
+  padding: 30rpx 40rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.room-code-display {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 10rpx 20rpx;
+  background-color: #f0f0f0;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.room-code-label {
+  font-size: 24rpx;
+}
+
+.copy-icon {
+  font-size: 28rpx;
+}
+
+.members-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.members-list {
+  display: inline-flex;
+  gap: 20rpx;
+  padding-bottom: 10rpx;
+}
+
+.member-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #f9f9f9;
+  border-radius: 15rpx;
+  min-width: 160rpx;
+  flex-shrink: 0;
+}
+
+.member-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  margin-bottom: 15rpx;
+  background-color: #e0e0e0;
+}
+
+.member-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 10rpx;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.member-balance {
+  font-size: 26rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.member-balance.positive {
+  color: #07c160;
+}
+
+.member-balance.negative {
+  color: #fa5151;
+}
+

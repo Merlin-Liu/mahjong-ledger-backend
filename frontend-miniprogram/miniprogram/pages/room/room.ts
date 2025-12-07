@@ -58,8 +58,6 @@ Page({
     // 转账对话框相关
     showTransactionDialog: false,
     targetMember: null as Member | null,
-    transactionAmount: '',
-    transactionDescription: '',
   },
 
   onLoad(options: { code: string }) {
@@ -193,15 +191,10 @@ Page({
         }
       })
       
-      // 格式化活动记录时间并反转顺序（最新的在前）
-      const formattedActivities = status.activities.reverse().map((activity) => ({
-        ...activity,
-        formattedTime: this.formatTime(activity.timestamp)
-      }))
-      
+      // 活动记录传递给组件，由组件自行格式化时间
       this.setData({ 
         members: membersWithBalance,
-        activities: formattedActivities
+        activities: status.activities
       })
     } catch (err: any) {
       console.error('加载房间状态失败:', err)
@@ -249,12 +242,8 @@ Page({
   async loadActivities() {
     try {
       const activities = await activityApi.getRoomActivities(this.data.roomCode)
-      // 格式化时间并反转顺序（最新的在前）
-      const formattedActivities = activities.reverse().map((activity) => ({
-        ...activity,
-        formattedTime: this.formatTime(activity.timestamp)
-      }))
-      this.setData({ activities: formattedActivities })
+      // 活动记录传递给组件，由组件自行格式化时间
+      this.setData({ activities })
     } catch (err: any) {
       console.error('加载活动记录失败:', err)
     }
@@ -268,25 +257,6 @@ Page({
     }, 5000)
     
     this.setData({ pollTimer: timer })
-  },
-
-  // 复制房间ID
-  copyRoomCode() {
-    wx.setClipboardData({
-      data: this.data.roomCode,
-      success: () => {
-        wx.showToast({
-          title: '房间ID已复制',
-          icon: 'success',
-        })
-      },
-      fail: () => {
-        wx.showToast({
-          title: '复制失败',
-          icon: 'none',
-        })
-      },
-    })
   },
 
   // 分享房间
@@ -306,117 +276,30 @@ Page({
     }
   },
 
-  // 离开房间
-  async leaveRoom() {
-    wx.showModal({
-      title: '确认离开',
-      content: '确定要离开房间吗？',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            await roomApi.leaveRoom(this.data.roomCode, this.data.userId)
-            wx.showToast({
-              title: '已离开房间',
-              icon: 'success',
-            })
-            
-            // 清除定时器
-            if (this.data.pollTimer) {
-              clearInterval(this.data.pollTimer)
-            }
-            
-            setTimeout(() => {
-              // 返回到主页
-              wx.reLaunch({
-                url: '/pages/index/index'
-              })
-            }, 1000)
-          } catch (err: any) {
-            console.error('离开房间失败:', err)
-            wx.showToast({
-              title: err.message || '离开房间失败',
-              icon: 'none',
-            })
-          }
-        }
-      },
-    })
-  },
-
-  // 结束房间
-  async closeRoom() {
-    if (!this.data.isOwner) {
-      wx.showToast({
-        title: '只有房主可以结束房间',
-        icon: 'none',
-      })
-      return
-    }
-
-    wx.showModal({
-      title: '确认结束',
-      content: '确定要结束房间吗？结束后所有成员将被移除。',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            await roomApi.closeRoom(this.data.roomCode, this.data.userId)
-            wx.showToast({
-              title: '房间已结束',
-              icon: 'success',
-            })
-            
-            // 清除定时器
-            if (this.data.pollTimer) {
-              clearInterval(this.data.pollTimer)
-            }
-            
-            setTimeout(() => {
-              // 返回到主页
-              wx.reLaunch({
-                url: '/pages/index/index'
-              })
-            }, 1000)
-          } catch (err: any) {
-            console.error('结束房间失败:', err)
-            wx.showToast({
-              title: err.message || '结束房间失败',
-              icon: 'none',
-            })
-          }
-        }
-      },
-    })
-  },
-
-  // 格式化时间 - 显示月日时分秒
-  formatTime(timestamp: string) {
-    if (!timestamp) {
-      return ''
-    }
-
-    try {
-      const date = new Date(timestamp)
-      // 检查日期是否有效
-      if (isNaN(date.getTime())) {
-        console.error('无效的时间戳:', timestamp)
-        return ''
+  // 离开房间成功回调（逻辑已迁移到 room-actions 组件）
+  onLeaveRoomSuccess(e: { detail?: { success?: boolean } }) {
+    if (e.detail?.success) {
+      // 清除定时器
+      if (this.data.pollTimer) {
+        clearInterval(this.data.pollTimer)
       }
-      const month = date.getMonth() + 1
-      const day = date.getDate()
-      const hour = date.getHours()
-      const minute = date.getMinutes()
-      const second = date.getSeconds()
-      
-      return `${month}月${day}日 ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}`
-    } catch (err) {
-      console.error('格式化时间失败:', err, timestamp)
-      return ''
     }
   },
+
+  // 结束房间成功回调（逻辑已迁移到 room-actions 组件）
+  onCloseRoomSuccess(e: { detail?: { success?: boolean } }) {
+    if (e.detail?.success) {
+      // 清除定时器
+      if (this.data.pollTimer) {
+        clearInterval(this.data.pollTimer)
+      }
+    }
+  },
+
 
   // 点击成员卡片
   onMemberTap(e: any) {
-    const member = e.currentTarget.dataset.member as Member
+    const member = e.detail.member as Member
     
     // 不能向自己转账
     if (member.userId === this.data.userId) {
@@ -430,36 +313,23 @@ Page({
     this.setData({
       showTransactionDialog: true,
       targetMember: member,
-      transactionAmount: '',
-      transactionDescription: '',
-    })
-  },
-
-  // 转账金额输入
-  onTransactionAmountInput(e: any) {
-    this.setData({
-      transactionAmount: e.detail.value,
-    })
-  },
-
-  // 转账备注输入
-  onTransactionDescriptionInput(e: any) {
-    this.setData({
-      transactionDescription: e.detail.value,
     })
   },
 
   // 确认转账
-  async onTransactionConfirm() {
-    const { targetMember, transactionAmount, transactionDescription, roomCode, userId } = this.data
+  async onTransactionConfirm(e: any) {
+    const { amount, description } = e.detail
+    const { targetMember, roomCode, userId } = this.data
+    const transactionAmount = amount
+    const transactionDescription = description
 
     if (!targetMember) {
       return
     }
 
     // 验证金额
-    const amount = parseFloat(transactionAmount)
-    if (!transactionAmount || isNaN(amount) || amount <= 0) {
+    const amountNum = parseFloat(transactionAmount)
+    if (!transactionAmount || isNaN(amountNum) || amountNum <= 0) {
       wx.showToast({
         title: '请输入有效的转账金额',
         icon: 'none',
@@ -473,7 +343,7 @@ Page({
         roomCode,
         userId,
         targetMember.userId,
-        amount,
+        amountNum,
         transactionDescription.trim() || undefined
       )
 
@@ -486,8 +356,6 @@ Page({
       this.setData({
         showTransactionDialog: false,
         targetMember: null,
-        transactionAmount: '',
-        transactionDescription: '',
       })
 
       // 重新加载房间状态
@@ -506,8 +374,6 @@ Page({
     this.setData({
       showTransactionDialog: false,
       targetMember: null,
-      transactionAmount: '',
-      transactionDescription: '',
     })
   },
 })

@@ -1,0 +1,41 @@
+<!--transaction-dialog.wxml-->
+<t-dialog
+  visible="{{visible}}"
+  title="向 {{targetMember.username}} 转账"
+  bind:confirm="onConfirm"
+  bind:cancel="onCancel"
+  confirm-btn="确认转账"
+  cancel-btn="取消"
+  async-close="{{true}}"
+>
+  <view slot="content" class="transaction-dialog-content">
+    <view class="transaction-target">
+      <image class="transaction-target-avatar" src="{{targetMember.avatarUrl}}" mode="aspectFill"></image>
+      <text class="transaction-target-name">{{targetMember.username}}</text>
+    </view>
+    <view class="transaction-form">
+      <view class="transaction-form-item">
+        <text class="transaction-label">转账金额（元）</text>
+        <input
+          class="transaction-input"
+          type="digit"
+          value="{{transactionAmount}}"
+          placeholder="请输入转账金额"
+          bind:input="onAmountInput"
+          maxlength="10"
+        />
+      </view>
+      <view class="transaction-form-item">
+        <text class="transaction-label">备注（可选）</text>
+        <input
+          class="transaction-input"
+          value="{{transactionDescription}}"
+          placeholder="请输入备注"
+          bind:input="onDescriptionInput"
+          maxlength="50"
+        />
+      </view>
+    </view>
+  </view>
+</t-dialog>
+

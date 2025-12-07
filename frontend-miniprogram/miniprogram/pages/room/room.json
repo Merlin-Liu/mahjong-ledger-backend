@@ -1,7 +1,10 @@
 {
   "usingComponents": {
     "navigation-bar": "../../components/navigation-bar/navigation-bar",
-    "t-dialog": "tdesign-miniprogram/dialog/dialog"
+    "member-list": "../../components/room/member-list/member-list",
+    "room-log": "../../components/room/room-log/room-log",
+    "room-actions": "../../components/room/room-actions/room-actions",
+    "transaction-dialog": "../../components/room/transaction-dialog/transaction-dialog"
   }
 }
 
