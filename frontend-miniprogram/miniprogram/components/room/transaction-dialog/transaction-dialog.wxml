@@ -17,12 +17,19 @@
       <view class="transaction-form-item">
         <text class="transaction-label">转账金额（元）</text>
         <input
+          id="amount-input"
           class="transaction-input"
           type="digit"
           value="{{transactionAmount}}"
           placeholder="请输入转账金额"
           bind:input="onAmountInput"
+          bind:confirm="onConfirm"
+          confirm-type="done"
           maxlength="10"
+          focus="{{inputFocus}}"
+          adjust-position="{{true}}"
+          hold-keyboard="{{true}}"
+          cursor-spacing="{{100}}"
         />
       </view>
     </view>

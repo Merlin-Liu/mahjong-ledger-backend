@@ -112,10 +112,8 @@ Page({
       await this.loadRoomInfo()
     } catch (err) {
       // 如果获取房间信息失败，尝试加入房间
-      wx.showLoading({ title: '加入中...' })
       try {
         await roomApi.joinRoom(this.data.roomCode, userId)
-        wx.hideLoading()
         wx.showToast({
           title: '已加入房间',
           icon: 'success',
@@ -123,7 +121,6 @@ Page({
         // 重新加载房间信息
         await this.loadRoomInfo()
       } catch (joinErr: any) {
-        wx.hideLoading()
         console.error('加入房间失败:', joinErr)
         wx.showToast({
           title: joinErr.message || '加入房间失败',
@@ -345,8 +342,7 @@ Page({
         roomCode,
         userId,
         targetMember.userId,
-        amountNum,
-        undefined
+        amountNum
       )
 
       wx.showToast({

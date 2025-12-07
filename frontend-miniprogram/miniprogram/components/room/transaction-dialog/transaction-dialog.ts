@@ -25,7 +25,8 @@ Component({
    * 组件的初始数据
    */
   data: {
-    transactionAmount: ''
+    transactionAmount: '',
+    inputFocus: false
   },
 
   /**
@@ -47,7 +48,8 @@ Component({
 
     onCancel() {
       this.setData({
-        transactionAmount: ''
+        transactionAmount: '',
+        inputFocus: false
       })
       this.triggerEvent('cancel')
     }
@@ -60,6 +62,17 @@ Component({
         this.setData({
           transactionAmount: ''
         })
+        // 延迟聚焦输入框，确保dialog已完全显示
+        setTimeout(() => {
+          this.setData({
+            inputFocus: true
+          })
+        }, 300)
+      } else {
+        // 对话框关闭时取消聚焦
+        this.setData({
+          inputFocus: false
+        })
       }
     },
     'targetMember': function(targetMember: Member | null) {
@@ -68,6 +81,12 @@ Component({
         this.setData({
           transactionAmount: ''
         })
+        // 重新聚焦输入框
+        setTimeout(() => {
+          this.setData({
+            inputFocus: true
+          })
+        }, 100)
       }
     }
   }
