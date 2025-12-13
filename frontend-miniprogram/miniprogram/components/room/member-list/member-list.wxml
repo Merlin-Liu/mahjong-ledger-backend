@@ -25,13 +25,6 @@
   </scroll-view>
 </view>
 
-<!-- 隐藏的 canvas 用于生成二维码 -->
-<canvas 
-  id="qrcode-canvas" 
-  canvas-id="qrcode-canvas"
-  style="position: fixed; top: -9999px; left: -9999px; width: 160px; height: 160px;"
-></canvas>
-
 <!-- 二维码弹窗 -->
 <view class="qrcode-dialog-mask" wx:if="{{showQRCodeDialog}}" bindtap="onCloseQRCodeDialog">
   <view class="qrcode-dialog" catchtap="">

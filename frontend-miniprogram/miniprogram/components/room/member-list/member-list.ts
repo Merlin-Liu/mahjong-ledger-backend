@@ -1,5 +1,5 @@
 // member-list.ts
-import { generateQRCodeImage, saveQRCodeToAlbum, QRCodeStyleOptions } from '../../../utils/qrcode'
+import { generateQRCodeImage, saveQRCodeToAlbum } from '../../../utils/qrcode'
 
 interface Member {
   id: number
@@ -76,41 +76,14 @@ Component({
       this.setData({ generatingQRCode: true, showQRCodeDialog: true })
 
       try {
-        // 二维码尺寸（更小）
-        const qrCodeSize = 160
+        // 使用后端接口生成小程序二维码
+        // page: 页面路径，不能携带参数
+        // scene: 场景值，会作为 query.scene 传递给小程序，格式为 'code=房间号'
+        const pagePath = 'pages/room/room'
+        const scene = `code=${roomCode}` // scene 最大32个字符
         
-        // 获取小程序信息
-        const accountInfo = wx.getAccountInfoSync()
-        const appId = accountInfo.miniProgram.appId
-        
-        // 生成明文 URL Scheme 格式的小程序链接
-        // 格式：weixin://dl/business/?appid=APPID&path=PATH&query=QUERY
-        // 注意：path 不包含 query，query 单独传递
-        const pagePath = 'pages/room/room' // 页面路径，不带 query
-        const query = `code=${roomCode}` // query 参数
-        const miniProgramUrl = `weixin://dl/business/?appid=${appId}&path=${encodeURIComponent(pagePath)}&query=${encodeURIComponent(query)}`
-        
-        
-        // 配置二维码样式，参考"开房间"按钮的紫色渐变
-        // 按钮颜色：linear-gradient(135deg, #667eea 0%, #764ba2 100%)
-        // 使用渐变中的主色调作为二维码前景色
-        const logoSize = 48 // Logo 尺寸增大到 48px（占二维码的30%）
-        const styleOptions: QRCodeStyleOptions = {
-          background: '#ffffff', // 白色背景
-          foreground: '#667eea', // 使用"开房间"按钮的蓝紫色作为前景色
-          correctLevel: 2, // 高级纠错级别，支持添加 Logo
-          // 添加 Logo 到二维码中心
-          image: {
-            imageResource: '/images/logo.png', // Logo 图片路径
-            dx: (qrCodeSize - logoSize) / 2, // Logo 在 canvas 上的 x 坐标（居中）
-            dy: (qrCodeSize - logoSize) / 2, // Logo 在 canvas 上的 y 坐标（居中）
-            dWidth: logoSize, // Logo 宽度（占二维码的30%）
-            dHeight: logoSize  // Logo 高度（占二维码的30%）
-          }
-        }
-
-        // 生成二维码图片，使用明文 URL Scheme 格式
-        const qrCodeImageUrl = await generateQRCodeImage(miniProgramUrl, qrCodeSize, 'qrcode-canvas', this, styleOptions)
+        // 生成二维码，宽度设置为 430px（默认值）
+        const qrCodeImageUrl = await generateQRCodeImage(pagePath, scene, 430)
         this.setData({ 
           qrCodeImageUrl,
           generatingQRCode: false

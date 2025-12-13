@@ -415,3 +415,26 @@ export const activityApi = {
   },
 }
 
+// 二维码 API
+export const qrcodeApi = {
+  /**
+   * 生成小程序二维码
+   * @param page 页面路径，例如 'pages/room/room'
+   * @param scene 场景值，最大32个字符，例如 'code=123456'
+   * @param width 二维码宽度，默认 430
+   */
+  generateQRCode(page: string, scene: string, width: number = 430) {
+    return request<{
+      base64: string
+      contentType: string
+    }>('/api/qrcode/generate', {
+      method: 'POST',
+      data: {
+        page,
+        scene,
+        width
+      }
+    })
+  },
+}
+

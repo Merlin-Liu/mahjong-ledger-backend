@@ -60,8 +60,25 @@ Page({
     targetMember: null as Member | null,
   },
 
-  onLoad(options: { code: string }) {
-    const { code } = options
+  onLoad(options: { code?: string, scene?: string }) {
+    let code = options.code
+    
+    // 如果通过二维码扫描进入，scene 参数会作为 query.scene 传递
+    // 需要从 scene 中解析房间号
+    if (!code && options.scene) {
+      try {
+        // scene 需要使用 decodeURIComponent 解码
+        const scene = decodeURIComponent(options.scene)
+        // scene 格式为 'code=123456'，需要解析
+        const match = scene.match(/code=(\d+)/)
+        if (match && match[1]) {
+          code = match[1]
+        }
+      } catch (e) {
+        console.error('解析 scene 参数失败:', e)
+      }
+    }
+    
     if (!code) {
       wx.showToast({
         title: '房间号无效',

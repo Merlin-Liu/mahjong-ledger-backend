@@ -9,6 +9,7 @@ const { errorResponse } = require("./utils");
 const usersRouter = require("./routes/users");
 const roomsRouter = require("./routes/rooms");
 const transactionsRouter = require("./routes/transactions");
+const qrcodeRouter = require("./routes/qrcode");
 
 const logger = morgan("tiny");
 
@@ -29,6 +30,7 @@ app.get("/", async (req, res) => {
 app.use("/api/users", usersRouter);
 app.use("/api/rooms", roomsRouter);
 app.use("/api/transactions", transactionsRouter);
+app.use("/api/qrcode", qrcodeRouter);
 
 // 全局错误处理中间件
 app.use((err, req, res, next) => {
