@@ -119,6 +119,15 @@ page {
   min-height: 120rpx;
 }
 
+/* 单独占满一行的按钮 */
+.btn-full {
+  width: 100% !important;
+  flex: 0 0 auto;
+  height: auto;
+  max-height: 200rpx;
+  box-sizing: border-box;
+}
+
 /* 统一的功能卡片样式 */
 .action-card {
   background: #ffffff;
@@ -151,6 +160,8 @@ page {
   overflow: hidden;
   transition: all 0.3s ease;
   min-height: 120rpx;
+  max-height: 200rpx;
+  height: auto;
 }
 
 .btn-action::after {
@@ -193,6 +204,22 @@ page {
 .btn-secondary:active {
   transform: scale(0.98);
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+/* 分享按钮 */
+.btn-share {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(245, 87, 108, 0.3);
+}
+
+.btn-share:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 16rpx rgba(245, 87, 108, 0.25);
+}
+
+.btn-share .btn-text {
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
 }
 
 .btn-icon {

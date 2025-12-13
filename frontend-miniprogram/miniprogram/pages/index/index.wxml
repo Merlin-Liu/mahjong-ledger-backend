@@ -11,20 +11,29 @@
 
     <!-- 功能按钮区域（始终显示） -->
     <view class="actions">
-      <!-- 开房间和扫码按钮并排 -->
+      <!-- 开房间按钮 - 单独占一行 -->
+      <button class="btn-action btn-primary btn-full" bindtap="createRoom" disabled="{{loading}}">
+        <view class="btn-content">
+          <text class="btn-icon">🏠</text>
+          <text class="btn-text">开房间</text>
+          <text class="btn-desc">创建新房间</text>
+        </view>
+      </button>
+      
+      <!-- 扫码进入和分享按钮并排 -->
       <view class="btn-row">
-        <button class="btn-action btn-primary" bindtap="createRoom" disabled="{{loading}}">
-          <view class="btn-content">
-            <text class="btn-icon">🏠</text>
-            <text class="btn-text">开房间</text>
-            <text class="btn-desc">创建新房间</text>
-          </view>
-        </button>
-        
         <button class="btn-action btn-secondary" bindtap="scanCode">
           <view class="btn-content">
             <text class="btn-icon">📷</text>
             <text class="btn-text">扫码进入</text>
+          </view>
+        </button>
+        
+        <button class="btn-action btn-share" open-type="share">
+          <view class="btn-content">
+            <text class="btn-icon">📤</text>
+            <text class="btn-text">分享给好友</text>
+            <text class="btn-desc">邀请好友一起玩</text>
           </view>
         </button>
       </view>

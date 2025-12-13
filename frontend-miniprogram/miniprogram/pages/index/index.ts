@@ -696,5 +696,14 @@ Page({
     })
     })
   },
+
+  // 分享小程序给好友
+  onShareAppMessage() {
+    return {
+      title: '打牌记账 - 一起来记账吧！',
+      path: '/pages/index/index',
+      imageUrl: '/images/share/share-card.png', // 自定义分享图片
+    }
+  },
 })
 
