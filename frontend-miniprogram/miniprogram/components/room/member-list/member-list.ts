@@ -38,12 +38,12 @@ Component({
     },
 
     onCopyRoomCode() {
-      // 复制房间ID
+      // 复制房间号
       wx.setClipboardData({
         data: this.data.roomCode,
         success: () => {
           wx.showToast({
-            title: '房间ID已复制',
+            title: '房间号已复制',
             icon: 'success',
           })
         },

@@ -3,7 +3,7 @@
   <view class="section-header">
     <view class="section-title">房间成员</view>
     <view class="room-code-display" bindtap="onCopyRoomCode">
-      <text class="room-code-label">房间ID: {{roomCode}}</text>
+      <text class="room-code-label">房间号: {{roomCode}}</text>
       <text class="copy-icon">📋</text>
     </view>
   </view>

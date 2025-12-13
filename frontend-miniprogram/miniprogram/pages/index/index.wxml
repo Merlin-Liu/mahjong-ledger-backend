@@ -25,7 +25,7 @@
         <button class="btn-action btn-secondary" bindtap="scanCode">
           <view class="btn-content">
             <text class="btn-icon">📷</text>
-            <text class="btn-text">扫码进入</text>
+            <text class="btn-text">扫码进入房间</text>
           </view>
         </button>
         
@@ -38,7 +38,7 @@
         </button>
       </view>
       
-      <!-- 输入房间ID加入房间 -->
+      <!-- 输入房间号加入房间 -->
       <view class="action-card">
         <view class="card-header">
           <text class="card-title">加入房间</text>
@@ -48,7 +48,7 @@
           <input 
             class="room-code-input" 
             type="number"
-            placeholder="请输入房间ID" 
+            placeholder="点击输入房间号，然后点击加入" 
             value="{{roomCodeInput}}"
             bindinput="onRoomCodeInput"
             maxlength="20"

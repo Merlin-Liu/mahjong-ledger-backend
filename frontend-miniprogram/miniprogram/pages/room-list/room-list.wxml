@@ -14,7 +14,7 @@
       >
         <view class="room-header">
           <view class="room-info">
-            <text class="room-code">房间ID: {{item.room.code}}</text>
+            <text class="room-code">房间号: {{item.room.code}}</text>
             <view class="room-status-wrapper">
               <view class="room-status {{item.room.status === 'active' ? 'status-active' : 'status-closed'}}">
                 {{item.room.status === 'active' ? '开启中' : '关闭'}}

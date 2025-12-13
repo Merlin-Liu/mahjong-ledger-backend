@@ -25,7 +25,7 @@ Page({
     },
     userId: 0,
     loading: false,
-    roomCodeInput: '',  // 房间ID输入框
+    roomCodeInput: '',  // 房间号输入框
     showUserDialog: false,  // 显示用户信息输入对话框
     dialogNickName: '',  // 对话框中的昵称
     dialogAvatarUrl: defaultAvatarUrl,  // 对话框中的头像
@@ -507,7 +507,7 @@ Page({
     })
   },
 
-  // 输入房间ID
+  // 输入房间号
   onRoomCodeInput(e: any) {
     const value = e.detail.value
     this.setData({
@@ -515,13 +515,13 @@ Page({
     })
   },
 
-  // 通过房间ID加入房间
+  // 通过房间号加入房间
   async joinRoomByCode() {
     const roomCode = this.data.roomCodeInput.trim()
     
     if (!roomCode) {
       wx.showToast({
-        title: '请输入房间ID',
+        title: '请输入房间号',
         icon: 'none',
       })
       return
@@ -620,7 +620,7 @@ Page({
         const roomCode = res.result
         if (!roomCode) {
           wx.showToast({
-            title: '无效的房间码',
+            title: '无效的房间号',
             icon: 'none',
           })
           return

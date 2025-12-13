@@ -14,7 +14,7 @@
       bindtap="onRoomTap"
     >
       <view class="room-item-header">
-        <text class="room-item-code">房间ID: {{item.room.code}}</text>
+        <text class="room-item-code">房间号: {{item.room.code}}</text>
         <view class="room-item-badges">
           <view class="room-item-status {{item.room.status === 'active' ? 'status-active' : 'status-closed'}}">
             {{item.room.status === 'active' ? '开启中' : '关闭'}}

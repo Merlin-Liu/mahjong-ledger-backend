@@ -64,7 +64,7 @@ Page({
     const { code } = options
     if (!code) {
       wx.showToast({
-        title: '房间码无效',
+        title: '房间号无效',
         icon: 'none',
       })
       setTimeout(() => {
