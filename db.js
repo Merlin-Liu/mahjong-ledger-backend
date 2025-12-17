@@ -13,6 +13,12 @@ const sequelize = new Sequelize("nodejs_demo", MYSQL_USERNAME, MYSQL_PASSWORD, {
   port: port || 3306,
   dialect: "mysql",
   logging: false, // 可以设置为 console.log 来查看 SQL 查询
+  charset: 'utf8mb4',
+  collate: 'utf8mb4_unicode_ci',
+  dialectOptions: {
+    charset: 'utf8mb4',
+    collate: 'utf8mb4_unicode_ci',
+  },
 });
 
 // 初始化所有模型
@@ -24,6 +30,36 @@ async function init() {
     // 测试数据库连接
     await sequelize.authenticate();
     console.log("数据库连接成功！");
+
+    // 自动转换数据库和表的字符集为 utf8mb4（支持 emoji）
+    try {
+      // 1. 修改数据库字符集
+      await sequelize.query("ALTER DATABASE nodejs_demo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", {
+        raw: true
+      });
+      console.log("数据库字符集已转换为 utf8mb4");
+
+      // 2. 修改所有表的字符集
+      const tables = ['users', 'rooms', 'room_members', 'transactions'];
+      for (const table of tables) {
+        try {
+          await sequelize.query(`ALTER TABLE ${table} CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`, {
+            raw: true
+          });
+          console.log(`表 ${table} 字符集已转换为 utf8mb4`);
+        } catch (tableError) {
+          // 如果表不存在，忽略错误（可能在首次创建时）
+          if (tableError.message && tableError.message.includes("doesn't exist")) {
+            console.log(`表 ${table} 不存在，跳过字符集转换`);
+          } else {
+            console.warn(`转换表 ${table} 字符集时出错:`, tableError.message);
+          }
+        }
+      }
+    } catch (charsetError) {
+      // 字符集转换失败不影响后续操作，只记录警告
+      console.warn("字符集转换警告（可能已转换过）:", charsetError.message);
+    }
 
     // 同步数据库表结构，忽略不存在的约束错误
     try {
