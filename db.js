@@ -13,11 +13,19 @@ const sequelize = new Sequelize("nodejs_demo", MYSQL_USERNAME, MYSQL_PASSWORD, {
   port: port || 3306,
   dialect: "mysql",
   logging: false, // 可以设置为 console.log 来查看 SQL 查询
-  charset: 'utf8mb4',
-  collate: 'utf8mb4_unicode_ci',
   dialectOptions: {
     charset: 'utf8mb4',
     collate: 'utf8mb4_unicode_ci',
+  },
+  pool: {
+    max: 10, // 最大连接数
+    min: 0, // 最小连接数
+    acquire: 30000, // 获取连接的最大等待时间（毫秒）
+    idle: 10000, // 连接空闲的最大时间（毫秒）
+    evict: 1000, // 检查空闲连接的间隔（毫秒）
+  },
+  retry: {
+    max: 3, // 最大重试次数
   },
 });
 

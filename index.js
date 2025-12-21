@@ -36,6 +36,17 @@ app.use("/api/qrcode", qrcodeRouter);
 app.use((err, req, res, next) => {
   console.error("Error:", err);
 
+  // 处理 Sequelize 唯一约束错误（重复键错误）
+  if (err.name === 'SequelizeUniqueConstraintError') {
+    const field = err.errors && err.errors[0] ? err.errors[0].path : '字段';
+    console.error(`唯一约束错误: ${field} 已存在`, {
+      field: err.errors && err.errors[0] ? err.errors[0].path : null,
+      value: err.errors && err.errors[0] ? err.errors[0].value : null,
+    });
+    // 返回 409 Conflict 状态码，表示资源冲突
+    return res.status(409).json(errorResponse(`${field} 已存在，请勿重复创建`, 409));
+  }
+
   // 处理数据库连接错误
   if (err.name === 'SequelizeDatabaseError' || err.original) {
     const originalError = err.original || err;

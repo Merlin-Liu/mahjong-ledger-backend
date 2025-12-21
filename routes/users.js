@@ -38,12 +38,55 @@ router.post("/", asyncHandler(async (req, res) => {
   }
 
   if (!user) {
-    // 创建新用户
-    user = await User.create({
-      wxOpenId: wxOpenId || null,
-      username: username.trim(),
-      avatarUrl: avatarUrl || null,
-    });
+    // 创建新用户，使用 findOrCreate 避免并发时的重复键错误
+    try {
+      if (wxOpenId) {
+        // 如果有 wxOpenId，使用 findOrCreate
+        const [createdUser, created] = await User.findOrCreate({
+          where: { wxOpenId },
+          defaults: {
+            username: username.trim(),
+            avatarUrl: avatarUrl || null,
+          },
+        });
+        user = createdUser;
+        isExistingUser = !created;
+        
+        // 如果用户已存在，更新用户名和头像
+        if (!created) {
+          user.username = username.trim();
+          if (avatarUrl) {
+            user.avatarUrl = avatarUrl;
+          }
+          await user.save();
+        }
+      } else {
+        // 如果没有 wxOpenId，直接创建
+        user = await User.create({
+          wxOpenId: null,
+          username: username.trim(),
+          avatarUrl: avatarUrl || null,
+        });
+      }
+    } catch (error) {
+      // 如果仍然出现重复键错误（并发情况），再次尝试查找
+      if (error.name === 'SequelizeUniqueConstraintError' && wxOpenId) {
+        user = await User.findOne({ where: { wxOpenId } });
+        if (user) {
+          isExistingUser = true;
+          user.username = username.trim();
+          if (avatarUrl) {
+            user.avatarUrl = avatarUrl;
+          }
+          await user.save();
+        } else {
+          // 如果还是找不到，抛出原始错误
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
   }
 
   res.json(successResponse({
