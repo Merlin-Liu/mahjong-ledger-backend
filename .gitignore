@@ -28,6 +28,10 @@ build/
 *.seed
 *.pid.lock
 
+# PM2 logs
+logs/
+*.log
+
 # WeChat MiniProgram
 miniprogram_npm/
 
